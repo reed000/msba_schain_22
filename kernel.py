@@ -1,81 +1,132 @@
 """
-Kernal Class
+Kernel Class
 """
 import numpy as np
 import pandas as pd
-import constants as cs
 
-from stage_1 import Stage1
+maxSimulationLength = 60*525600 # minutes = 1 year    
 
-maxSimulationLength = 500 #525600 minutes = 1 year    
+# # # # # # # # # # # # # # # # # #
+# Notional data structures below  #
+# # # # # # # # # # # # # # # # # #
+
+    # eventID : {busProc name,  function}
+#    event_dictionary = {
+#        'DeliveryIn' : ('parking','EventDelivery'))
+#    }
+
+    # int TIMESTAMP : eventID
+#    selfevent_queue = {
+#        800  : DockDelivery,
+#        1600 : ReceiveOrders
+#        3200 : Worker0Arrives
+#    }   
+
+    # DATA STORAGE
+        # parking, Storage_X = {
+        #         'P1':0,
+        #         'P2':0,
+        #         'P3':0,
+        #         'P4':0
+        #     }
+
+        # profit = 0
+        #Costs = {
+        #     'labor': 0
+        #     'delivery': 0
+        #     'lost_sales': 0
+        #     'facilities_fixed': 0
+        #     'packing_station': 0
+        #     'inventory_holding': 0
+        # }
 
 class Kernel():
 
-    def __init__(self):
+    def __init__(self, procs : dict,
+                       runtime : int,
+                       event_dictionary : dict,
+                       options : dict):
+                       
         print("Kernel()::__init__() is initializing some cool stuff")
         self.clock = 0
 
-        # Event list implemented using dictionary
-        self.eventList = {} 
-
-        # Keep note of the next event chronologically to roll forward the system clock
-        self.nextEventScheduleTime = 0 
-
-        self.startup()
-        self.mainLoop()
-
-        #Operations
-        self.INBOUND = Stage1()
-
-    def startup(self):
-        # TODO : make compatible with class
-        ### INITIAL ARRIVAL EVENT GENERATION
-        # Current clock = 0
-        print("Kernel()::__init__() is starting some cool stuff")
+        # Event queue implemented using dictionary
+                #clock: eventID
+        self.event_queue = {}
         
-        a = np.random.random()
-        self.eventList[round(self.clock+a, 8)] = "... nope"
-        print(self.eventList)
-        self.nextEventScheduleTime = round(self.clock + a, 8)
+        # Keep note of the next event chronologically to roll forward the system clock
+        self.next_event_time = 0 
+
+        # DATA
+        self.DATA_STORAGE = {
+            "parking": {
+                'P1':0,
+                'P2':0,
+                'P3':0,
+                'P4':0
+            },
+            "Storage": {
+                'P1':0,
+                'P2':0,
+                'P3':0,
+                'P4':0
+            },
+            "Costs": None,
+            "Revenue": None,
+        }
+
+        # save the options input
+        self.options = options
+
+        # initialize processes
+        self.processes = procs
+        for proc_name in self.processes:
+            print("Booting: {}".format(proc_name))
+            self.processes[proc_name].startup(kernel=self)
+    
+        # check event queue population
+        print(self.event_queue)
+
+        self.event_dictionary = event_dictionary
 
 
     def mainLoop(self):
-        # TODO: Needs input params
         ### THE MAIN SIMULATION LOOP STARTS HERE
+
+        # Run the simulation so long as the clock has not exceed max time
         while self.clock < maxSimulationLength:
-            print("Sim step!")
+            if not len(self.event_queue.keys()):
+                # TODO - this is a dumb way to end the simulation
+                return
+
+            # get the next event from the most imminent event key            
+            self.next_event_time = min(self.event_queue.keys())
+
+            # walk the sim through that event
             self.step()
 
 
     def step(self):
-        # Process next event
-        
-        print("Stepping Clock")
-        # increment clock
-        self.clock = self.clock + 5
+        # Update the clock
+        # print("Stepping Clock to {}".format(self.next_event_time))
+        self.clock = self.next_event_time
 
-        eventType = "None"
-        if len(self.eventList.keys()):
-            eventType = self.eventList.pop(self.nextEventScheduleTime)    # Get the next event while removing it from the event list
+        # pop the event from the queue       
+        eventType = self.event_queue.pop(self.clock)    # Get the next event while removing it from the event list
 
-        if eventType == "DELIVERY":
-            self.INBOUND.exec_delivery()
-        elif eventType == "StartTreat":
-            processEventStartTreat()
-        elif eventType == "EndTreat":
-            processEventEndTreat()
-        elif eventType == "None":
-            print("Nothing happened lol")
-    
+        # find which process must handle the event and its identifying name
+        event_handler, event_name = self.event_dictionary[eventType]
+        print("Loaded event: {} to be done by {}".format(event_name,event_handler))
+
+        # run that process' event handler
+        self.processes[event_handler].handleEvent(event_name, kernel=self)
+
+        # report happenings of the time step
+        self.report()
+
     
     def report(self):
-        # Print metrics
-        
-        print("Current Clock: ".format(self.clock))
-        pass
-
-
-if __name__ == "__main__":
-    MuhKernel = Kernel()
-    print("Helloooo")
-    MuhKernel.report()
+        # output data storage to make sure we're not messing up
+        profit = self.DATA_STORAGE['Revenue']
+        print("Current Clock: {}".format(self.clock))
+        print(self.DATA_STORAGE)

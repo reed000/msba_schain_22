@@ -3,7 +3,6 @@ import numpy as np
 from kernel import Kernel
 import constants as cs
 
-from bizprocs.pooling import Pooling
 from bizprocs.storing import Storage
 
 """
@@ -11,8 +10,8 @@ This is the driver script for the entire project
 """
 def PRIMARY_LOOP():
     processes = {
-        'parking' : Pooling(),
-        # 'stowage' : Storage(),
+        #'parking' : Pooling()
+        'stowage' : Storage(),
         # 'picking' : Picking(),
         # 'packing' : Packing(),
         # 'orders'  : OrdersQueue()
@@ -21,7 +20,7 @@ def PRIMARY_LOOP():
     # OrderIN, DeliveryIN, OrderOUT, 
     event_dictionary = {
          'DeliveryIn' : ('parking','getDelivery'),
-        #  'ShiftChangeStorage' : ('stowage', 'ShiftChangeStorage')
+         'ShiftChangeStorage' : ('stowage', 'ShiftChangeStorage')
      }
 
     options_dict = {
@@ -35,7 +34,7 @@ def PRIMARY_LOOP():
      }
 
     simulation_loop = Kernel(procs=processes,
-                            runtime=60*525600, # minutes = 1 year
+                            runtime=99999999999999999999,
                             event_dictionary=event_dictionary,
                             options=options_dict)
 

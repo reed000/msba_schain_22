@@ -3,8 +3,8 @@ Kernel Class
 """
 import numpy as np
 import pandas as pd
-
-maxSimulationLength = 60*525600 # minutes = 1 year    
+import constants as cs
+from data_store import DataStore
 
 # # # # # # # # # # # # # # # # # #
 # Notional data structures below  #
@@ -16,29 +16,14 @@ maxSimulationLength = 60*525600 # minutes = 1 year
 #    }
 
     # int TIMESTAMP : eventID
-#    selfevent_queue = {
+#    self.event_queue = {
 #        800  : DockDelivery,
 #        1600 : ReceiveOrders
-#        3200 : Worker0Arrives
+#        3200 : WorkerStorage_2347_0_TransitStorage
+#        3210 : WorkerStorage_2347_0_StowItem
+#        3330 : WorkerStorage_2347_0_TransitParking
 #    }   
 
-    # DATA STORAGE
-        # parking, Storage_X = {
-        #         'P1':0,
-        #         'P2':0,
-        #         'P3':0,
-        #         'P4':0
-        #     }
-
-        # profit = 0
-        #Costs = {
-        #     'labor': 0
-        #     'delivery': 0
-        #     'lost_sales': 0
-        #     'facilities_fixed': 0
-        #     'packing_station': 0
-        #     'inventory_holding': 0
-        # }
 
 class Kernel():
 
@@ -57,23 +42,11 @@ class Kernel():
         # Keep note of the next event chronologically to roll forward the system clock
         self.next_event_time = 0 
 
+        # store maximum runtime
+        self.runtime = runtime
+
         # DATA
-        self.DATA_STORAGE = {
-            "parking": {
-                'P1':0,
-                'P2':0,
-                'P3':0,
-                'P4':0
-            },
-            "Storage": {
-                'P1':0,
-                'P2':0,
-                'P3':0,
-                'P4':0
-            },
-            "Costs": None,
-            "Revenue": None,
-        }
+        self.DATA_STORAGE = DataStore()
 
         # save the options input
         self.options = options
@@ -85,7 +58,7 @@ class Kernel():
             self.processes[proc_name].startup(kernel=self)
     
         # check event queue population
-        print(self.event_queue)
+        # print(self.event_queue)
 
         self.event_dictionary = event_dictionary
 
@@ -94,7 +67,7 @@ class Kernel():
         ### THE MAIN SIMULATION LOOP STARTS HERE
 
         # Run the simulation so long as the clock has not exceed max time
-        while self.clock < maxSimulationLength:
+        while self.clock < self.runtime:
             if not len(self.event_queue.keys()):
                 # TODO - this is a dumb way to end the simulation
                 return
@@ -115,6 +88,7 @@ class Kernel():
         eventType = self.event_queue.pop(self.clock)    # Get the next event while removing it from the event list
 
         # find which process must handle the event and its identifying name
+        # print(self.event_dictionary)
         event_handler, event_name = self.event_dictionary[eventType]
         print("Loaded event: {} to be done by {}".format(event_name,event_handler))
 
@@ -125,8 +99,16 @@ class Kernel():
         self.report()
 
     
+    def addEvent(self, event_time, event_name):
+        # if the event time exists is taken
+        while event_time in self.event_queue:
+            event_time+=1.0
+        
+        self.event_queue[event_time] = event_name
+
+
     def report(self):
         # output data storage to make sure we're not messing up
-        profit = self.DATA_STORAGE['Revenue']
+        profit = self.DATA_STORAGE.revenue
         print("Current Clock: {}".format(self.clock))
         print(self.DATA_STORAGE)

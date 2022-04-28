@@ -62,6 +62,47 @@ class Kernel():
 
         self.event_dictionary = event_dictionary
 
+        # ! ! ! W A R N I N G ! ! ! 
+        # HARD CODE this for TESTING
+        self.DATA_STORAGE.parking = {
+                'P1':100,
+                'P2':100,
+                'P3':100,
+                'P4':100
+            }
+        # ! ! ! W A R N I N G ! ! ! 
+
+    # TODO Can be moved to an other class
+    def get_day_and_shift(timestamp):
+        """
+        Returns Tuple (DAY, SHIFT #) of current wall clock
+        tested in explore.ipynb
+        """
+        hour = 60 * 60
+        day = hour * 24
+        week = day * 7
+
+        curr_time = timestamp % day
+        curr_day = timestamp % week
+
+        # Calculate SHIFT [0,1,2]
+        if curr_time <= (hour * 8): #First 8 hours
+            shift = 0
+        elif curr_time <= (hour * 16 ):
+            shift = 1
+        else:  # shift < hour * 24 = 86400 = week
+            shift = 2
+
+        # Calculate DAY of WEEK
+        days = ["THU", "FRI", "SAT", "SUN", "MON", "TUE", "WED"]
+        for i in range(1,8):
+            if curr_day < day*i:  #<12 AM
+                today = days[i-1]
+                break
+        
+        # print("{}: {} shift {}".format(timestamp, today, shift))
+        return (today, shift)
+
 
     def mainLoop(self):
         ### THE MAIN SIMULATION LOOP STARTS HERE
@@ -79,6 +120,7 @@ class Kernel():
             self.step()
 
 
+# TODO: Add daily event at 12:00 for updating holding/labor costs
     def step(self):
         # Update the clock
         # print("Stepping Clock to {}".format(self.next_event_time))

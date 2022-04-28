@@ -8,12 +8,7 @@ class DataStore():
                 'P3':0,
                 'P4':0
             }
-        # self.storage = {
-        #         'P1':0,
-        #         'P2':0,
-        #         'P3':0,
-        #         'P4':0
-        #     }
+
         self.storage = {
             'Area1': {'P1':0,
                     'P2':0,
@@ -36,18 +31,32 @@ class DataStore():
                 'labor': 0,
                 'delivery': 0,
                 'lost_sales': 0,
-                'facilities_fixed': 0,
-                'packing_station': 0,
-                'inventory_holding': 0
+                'facilities_fxd': 0,
+                'packing_stn': 0,
+                'inventory_hldg': 0
             }
         self.revenue = 0
         self.product = ['P1', 'P2', 'P3', 'P4']
         self.product_names = ['Tshirt', 'Hoodie', 'Sweatpants', 'Sneakers']
+    
+    def get_KPIs(self):
+        kpi = {
+            "                   Revenue": self.revenue,
+            "        (Delivery Expense)": self.costs['delivery'],
+            "      {Lost Sales Penalty)": self.costs['lost_sales'],
+            "           (Labor Expense)": self.costs['labor'],
+            "   (Facilities Fixed Cost)": self.costs['facilities_fxd'],
+            " (Packing Station Expense)": self.costs['packing_stn'],
+            "  (Inventory Holding Cost)": self.costs['inventory_hldg'],
+            "------------TOTAL PROFIT =": self.revenue - self.get_total_cost()
+        }
+        return kpi
 
     def __str__(self):
-        out_str = "DATA STORE\n"
+        out_str = "KPIs\n"
         out_str += str(self.parking)
-        out_str += "\n TOTAL Costs: {}".format(self.get_total_cost())
+        out_str += str(self.get_total_cost)
+        # out_str += "\n KPIS: \n{}".format(str(self.get_KPIs()))       ## TODO ENABLE FOR FINAL OUTPUT
 
         return out_str
             
@@ -59,6 +68,35 @@ class DataStore():
         weight += self.parking['P4'] * cs.P4_WEIGHT
         return weight
 
+
+    def __get_curr_inventory__(self):
+        """ Add up all inventory
+        """ 
+        # Start with Parking
+        total_inventory = self.parking
+
+        # Add Storage
+        for area in self.storage:
+            for prod in self.storage[area]:
+                total_inventory[prod] += self.storage[area][prod]
+        
+        # Add Packing/Outbound TODO
+        return total_inventory
+    
+    def add_holding_cost(self):                                        # TODO IMPLEMENT USAGE
+        """Add holding cost at daily level
+        """
+        inventory = self.get_curr_inventory()
+        for prod in inventory:
+            if prod = 'P1':
+                self.costs['inventory_hldg'] += inventory[prod] * cs.P1_HOLDING_COST
+            elif prod = 'P2':
+                self.costs['inventory_hldg'] += inventory[prod] * cs.P2_HOLDING_COST
+            elif prod = 'P3':
+                self.costs['inventory_hldg'] += inventory[prod] * cs.P3_HOLDING_COST
+            else:
+                self.costs['inventory_hldg'] += inventory[prod] * cs.P4_HOLDING_COST
+    
     def get_max_cnt_parking(self):
         """Return Max Count Parking Spot
         """

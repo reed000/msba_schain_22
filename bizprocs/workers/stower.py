@@ -1,6 +1,7 @@
 """
 Worker Super Class (Stower for Storage)
 """
+import warnings
 import numpy as np
 import pandas as pd
 import constants as cs
@@ -36,6 +37,9 @@ class StowageWorker(Worker):
             'P4' : cs.P4_WEIGHT
         }
 
+        # save the distribution method, RANDOM or DESIGNATED
+        self.stow_strategy = kernel.options['STORAGE_MECHANIC']
+
         # populate LOCAL methods
         self.__addEvent__(self.name+"_CheckParking"  ,self.__checkParking__)
         self.__addEvent__(self.name+"_TravelStorage" ,self.__travelStorage__)
@@ -53,10 +57,15 @@ class StowageWorker(Worker):
 
         # amount taken is minimum of max capacity or amount left
         # TODO - wrong!!! needs maximum capacity of UNITS, not WEIGHT
-        load = min(kernel.DATA_STORAGE.parking[max_weight_prod], self.max_capacity)           
+        load, max_weight_prod = self.__setLoad__(kernel, max_weight_prod)        
+
+        # if this is the load then there is nothing in parking
+        if load == -999:
+            warnings.warn("Stowage Empty at time {}".format(kernel.clock))
+            return
 
         # grab it with your hands
-        self.hands[max_weight_prod] = load
+        self.hands[max_weight_prod] = math.floor(load / self.weights[max_weight_prod])
 
         # decrement it from the parking area
         kernel.DATA_STORAGE.parking[max_weight_prod] -= \
@@ -69,41 +78,132 @@ class StowageWorker(Worker):
         kernel.addEvent(eta, self.name+"_TravelStorage")
 
     
-    # will need to be upgraded with multiple storage areas
-    def __travelStorage__(self, kernel=None):
-        # deterministic or random?
-        self.__evaluateStorage__(self, kernel)
+    def __setLoad__(self, kernel=None, max_weight_prod=None):
+        load_out = 0
 
-        eta = kernel.clock + cs.STOWER_STOW_TIME_PER_UNIT
-        kernel.addEvent(eta, self.name+"_StowProduct")
+        # Case 1: 
+        # ono.wav, the parking area is empty
+        if len(max_weight_prod) > 1 and \
+            kernel.DATA_STORAGE.parking[max_weight_prod[0]]==0:
+            load_out = -999
 
+        # Case 2:
+        # redundantly max weight products in parking area
+        # select randomly
+        elif len(max_weight_prod) > 1 and \
+            kernel.DATA_STORAGE.parking[max_weight_prod[0]]>0:
+            random_select = np.random.randint(0,len(max_weight_prod)-1)
+            max_weight_prod = max_weight_prod[random_select]
+            load_out = min(kernel.DATA_STORAGE.parking[max_weight_prod], \
+                            self.max_capacity) 
 
-    def __travelAdjacent__(self, kernel=None):
-        pass
+        # Case 3:
+        # redundantly max weight products in parking area
+        # select randomly
+        else:
+            max_weight_prod = max_weight_prod[0]
+            load_out = min(kernel.DATA_STORAGE.parking[max_weight_prod], \
+                            self.max_capacity)   
 
-    
-    def __stowProduct__(self, kernel=None):
-        # grab it with your hands
-        self.hands[max_weight_prod] -= self.dropoff
-
-        # add to the appropriate storage area
-
-        # figure out what to do next
-        self.__evaluateStorage__(self, kernel)
-
-
-    def __travelParking__(self, kernel=None):
-        pass
-
-
-    def __smokeCigs__(self, kernel=None):
-        pass
+        return load_out, max_weight_prod
 
 
     def __setDestination__(self, max_weight_prod=None):
         # where random or deterministic logic is set
+        if self.stow_strategy == "DESIGNATED" and self.destination == "Parking":
+            dest_dict = {
+                'P1' : 'Area1',
+                'P2' : 'Area2',
+                'P3' : 'Area3',
+                'P4' : 'Area4'
+            }
+
+            self.destination = dest_dict[max_weight_prod]
+        elif self.stow_strategy == "DESIGNATED" and self.destination != "Parking":
+            self.destination = "Parking"
+
+        elif self.stow_strategy == "RANDOM":
+            dest_dict = {
+                'Parking' : 'Area1',
+                'Area1'   : 'Area2',
+                'Area2'   : 'Area3',
+                'Area3'   : 'Area4',
+                'Area4'   : 'Parking',
+            }
+
+            old_dest = self.destination
+            self.destination = dest_dict[old_dest]
+
+        else:
+            warnings.warn("Worker {} got bogus stow strategy.".format(self.name))
+
+
+    # will need to be upgraded with multiple storage areas
+    def __travelStorage__(self, kernel=None):
+        eta = kernel.clock + cs.STOWER_TO_STORAGE_TIME
+        kernel.addEvent(eta, self.name+"_StowProduct")
+
+    
+    def __stowProduct__(self, kernel=None):
+        # set the self.dropoff variable
+        if self.stow_strategy == "DESIGNATED":
+            self.dropoff = self.hands
+        else:
+            self.__randomStorage__(self, kernel)
+
+        # add to the appropriate storage area
+        for item in self.dropoff:
+            kernel.DATA_STORAGE.storage[self.destination][item] += self.dropoff[item]    
+
+        # release it with your hands
+        for item in self.dropoff:
+            self.hands[item] -= self.dropoff[item]        
+
+        # figure out what to do next
+        self.__setDestination__(kernel)
+
+        if self.destination == "Parking":
+            eta = kernel.clock + cs.STOWER_TO_STORAGE_TIME
+            next_event = self.name+"_CheckParking"
+        elif self.destination == "Area1":
+            warnings.warn("Set destination to Area1 despite already stowing...")
+            eta = kernel.clock + 1e-3
+            next_event = self.name+"_TravelAdjacent"
+        elif self.destination == "Area2":
+            eta , next_event = kernel.clock + 1e-3, self.name+"_TravelAdjacent"
+        elif self.destination == "Area3":
+            eta, next_event = kernel.clock + 1e-3, self.name+"_TravelAdjacent"
+        elif self.destination == "Area4":
+            eta = kernel.clock + 1e-3
+            next_event = self.name+"_TravelAdjacent"
+
+        kernel.addEvent(eta, next_event)
+
+
+    def __randomStorage__(self, kernel=None):
+        if self.destination == "Area4":
+            self.dropoff = self.hands.copy()
+        else:
+            for item in self.hands:
+                self.dropoff[item] = floor(self.hands[item]/4.0)
+
+
+    def __evaluateStorage__(self, kernel=None):
         pass
 
+
+    def __travelAdjacent__(self, kernel=None):
+        eta = kernel.clock + cs.STOWER_TRAVEL_TIME
+        kernel.addEvent(eta, self.name+"_StowProduct")
+
+
+    def __travelParking__(self, kernel=None):
+        eta = kernel.clock + cs.STOWER_TO_STORAGE_TIME
+        kernel.addEvent(eta, self.name+"_CheckParking")
+
+
+    def __smokeCigs__(self, kernel=None):
+        pass
 
 """
 Each stower, provided that there are still unstowed inventories in the pooling area, will

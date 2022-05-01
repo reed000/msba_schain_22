@@ -14,8 +14,8 @@ This is the driver script for the entire project
 """
 def PRIMARY_LOOP():
     processes = {
-        # 'parking' : Pooling(),
-        # 'stowage' : Storage(),
+        'parking' : Pooling(),
+        'stowage' : Storage(),
         'picking' : Picking(),
         # 'packing' : Packing(),
         'orders'  : Orders()
@@ -23,9 +23,9 @@ def PRIMARY_LOOP():
 
     # OrderIN, DeliveryIN, OrderOUT, 
     event_dictionary = {
-        # 'DeliveryIn' : ('parking','getDelivery'),
+        'DeliveryIn' : ('parking','getDelivery'),
         'OrderUp': ('orders', 'OrderUp'),
-        #  'ShiftChangeStorage' : ('stowage', 'ShiftChangeStorage')
+        'ShiftChangeStorage' : ('stowage', 'ShiftChangeStorage'),
         'ShiftChangePicking' : ('picking', 'ShiftChangePicking'),
         'PokeWorkersPicking' : ('picking', 'PokeWorkersPicking')
      }
@@ -66,7 +66,8 @@ def PRIMARY_LOOP():
          'PICKING_WORKERS'      :  5,           # picking_shift
          'PACKING_WORKERS'      :  5,           # packing_shift
          'PACKING_STATIONS'     :  4,           # N
-         'KENNY_LOGGINS'        :  True
+         'KENNY_LOGGINS'        :  False,       # [True, False]
+         'SAVE_DATA'            :  False        # [True, False]
      }
 
     simulation_loop = Kernel(procs=processes,

@@ -6,7 +6,7 @@ import pandas as pd
 import constants as cs
 from data_store import DataStore
 
-from tqdm import tqdm
+from tqdm.auto import tqdm
 import logging
 from datetime import datetime
 
@@ -65,7 +65,7 @@ class Kernel():
             self.LOGS = logging.getLogger()
             self.LOGS.setLevel(logging.DEBUG)
             self.LOGS.addHandler(handler)
-            self.addLogs("StartUp :: logger object created")
+            self.addLogs("StartUp :: logger object created",[])
 
         # initialize processes
         self.processes = procs
@@ -134,31 +134,36 @@ class Kernel():
         ### THE MAIN SIMULATION LOOP STARTS HERE
 
         # progres bar of great justice
-        with tqdm(total=self.runtime) as pbar:
+        pbar = tqdm(total=self.runtime, position=0, leave=True, ascii=True)
+        last_clock = 0
 
-            # Run the simulation so long as the clock has not exceed max time
-            while self.clock < self.runtime:
-                if not len(self.event_queue.keys()):
-                    # TODO - this is a dumb way to end the simulation
-                    print("**************EMPTY EVENT QUEUE*********** Hooray?")
-                    self.clock = self.runtime
-                    pbar.postfix = self.clock
-                    pbar.update()
-                    break
-
-                # TODO Possible refactor of event_queue to min-heap if performance bad
-                # https://www.geeksforgeeks.org/min-heap-in-python/
-
-                # get the next most imminent event key            
-                self.next_event_time = min(self.event_queue.keys())
-
-                # walk the sim through that event
-                self.step()
-
+        # Run the simulation so long as the clock has not exceed max time
+        while self.clock < self.runtime:
+            if not len(self.event_queue.keys()):
+                # TODO - this is a dumb way to end the simulation
+                # print("**************EMPTY EVENT QUEUE*********** Hooray?")
+                self.clock = self.runtime
                 pbar.postfix = self.clock
                 pbar.update()
-           
-        self.writeDataframe()
+                break
+
+            # TODO Possible refactor of event_queue to min-heap if performance bad
+            # https://www.geeksforgeeks.org/min-heap-in-python/
+
+            # get the next most imminent event key            
+            self.next_event_time = min(self.event_queue.keys())
+
+            # walk the sim through that event
+            self.step()
+
+            
+            pbar.update(self.clock-last_clock)
+            last_clock = self.clock
+
+        pbar.close()
+        
+        if self.options['SAVE_DATA']:
+            self.writeDataframe()
 
 
 # TODO: Add daily event at 12:00 for updating holding/labor costs
@@ -171,9 +176,9 @@ class Kernel():
         eventType = self.event_queue.pop(self.clock)    # Get the next event while removing it from the event list
 
         # find which process must handle the event and its identifying name
-        self.addLogs("Clock {} :: Loading event - {}".format(self.clock, eventType))
+        self.addLogs("Clock {} :: Loading event - {}", [self.clock, eventType])
         event_handler, event_name = self.event_dictionary[eventType]
-        self.addLogs("Clock {} :: Loaded event - {} to be done by {}".format(self.clock, event_name,event_handler))
+        self.addLogs("Clock {} :: Loaded event - {} to be done by {}", [self.clock, event_name,event_handler])
 
         # run that process' event handler
         self.processes[event_handler].handleEvent(event_name, kernel=self)
@@ -187,27 +192,25 @@ class Kernel():
         while event_time in self.event_queue:
             event_time += 1e-3
         
-        self.addLogs("Clock {} :: Scheduling event - {} at t={}".format(self.clock, event_name, event_time))
+        self.addLogs("Clock {} :: Scheduling event - {} at t={}",[self.clock, event_name, event_time])
         self.event_queue[event_time] = event_name
 
         return event_time, event_name
 
 
-    def addLogs(self, message):
+    def addLogs(self, message:str, message_args:list):
         if self.options['KENNY_LOGGINS']:
-            self.LOGS.info(message)
+            formatted = message.format(*message_args)
+            self.LOGS.info(formatted)
 
 
     def report(self):
         # output data storage to make sure we're not messing up
         profit = self.DATA_STORAGE.revenue
 
-        # print(self.DATA_STORAGE.temp_packing)
-
         # transmit entire data storage to a time-stamped dict
-        self.DATA_STORAGE.save_state(self.clock)
-        # print("Current Clock: {}".format(self.clock))
-        # print(self.DATA_STORAGE)
+        if self.options['SAVE_DATA']:
+            self.DATA_STORAGE.save_state(self.clock)
 
 
     def writeDataframe(self):

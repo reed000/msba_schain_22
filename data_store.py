@@ -132,8 +132,12 @@ class DataStore():
             'P4' : self.parking['P4'] * cs.P4_WEIGHT
         }
 
-        max_weight_key = \
-            [key for key, value in weight_now.items() if value == max(weight_now.values())]
+        max_weight_key = max(weight_now, key=weight_now.get)
+
+        # if it's a list that means there's equivalent values
+        if type(max_weight_key) is list:
+            # arbitrarily pick the first one
+            max_weight_key = max_weight_key[0]
         
         return max_weight_key
 

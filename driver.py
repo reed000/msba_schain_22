@@ -3,25 +3,31 @@ import numpy as np
 from kernel import Kernel
 import constants as cs
 
-from bizprocs.pooling import Pooling
-from bizprocs.storing import Storage
+from bizprocs.facilities.pooling import Pooling
+from bizprocs.facilities.storing import Storage
+from bizprocs.facilities.picking import Picking
+from bizprocs.facilities.ordering import Orders
+
 
 """
 This is the driver script for the entire project
 """
 def PRIMARY_LOOP():
     processes = {
-        'parking' : Pooling(),
+        # 'parking' : Pooling(),
         # 'stowage' : Storage(),
-        # 'picking' : Picking(),
+        'picking' : Picking(),
         # 'packing' : Packing(),
-        # 'orders'  : OrdersQueue()
+        'orders'  : Orders()
     }
 
     # OrderIN, DeliveryIN, OrderOUT, 
     event_dictionary = {
-         'DeliveryIn' : ('parking','getDelivery'),
+        # 'DeliveryIn' : ('parking','getDelivery'),
+        'OrderUp': ('orders', 'OrderUp'),
         #  'ShiftChangeStorage' : ('stowage', 'ShiftChangeStorage')
+        'ShiftChangePicking' : ('picking', 'ShiftChangePicking'),
+        'PokeWorkersPicking' : ('picking', 'PokeWorkersPicking')
      }
 
     # SHIFTS every day 3 slots # workers per slot = [12-8, 8-4, 4-12]
@@ -53,13 +59,14 @@ def PRIMARY_LOOP():
         "SAT": [5, 5, 5]
     }
     options_dict = {
-         'DELIVERY_SCHEDULE' : 'DAILY',    #['DAILY', 'WEEKLY']
-         'STORAGE_MECHANIC' : 'DESIGNATED', #['DESIGNATED', 'RANDOM']
-         'STORAGE_WORKERS' :  5,            # stowing_shift
-         'PICKING_MECHANIC' : 'DESIGNATED', #['DESIGNATED', 'RANDOM']
-         'PICKING_WORKERS' :  5,            # picking_shift
-         'PACKING_WORKERS' :  5,            # packing_shift
-         'PACKING_STATIONS' : 4             # N
+         'DELIVERY_SCHEDULE'    : 'DAILY',      #['DAILY', 'WEEKLY'] _TEST_
+         'STORAGE_MECHANIC'     : 'DESIGNATED', #['DESIGNATED', 'RANDOM']
+         'STORAGE_WORKERS'      :  5,           # stowing_shift
+         'PICKING_MECHANIC'     : 'DESIGNATED', #['DESIGNATED', 'RANDOM']
+         'PICKING_WORKERS'      :  5,           # picking_shift
+         'PACKING_WORKERS'      :  5,           # packing_shift
+         'PACKING_STATIONS'     :  4,           # N
+         'KENNY_LOGGINS'        :  True
      }
 
     simulation_loop = Kernel(procs=processes,

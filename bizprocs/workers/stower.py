@@ -75,7 +75,7 @@ class StowageWorker(Worker):
         self.__setDestination__(max_weight_prod)
 
         eta = kernel.clock + cs.STOWER_PICKUP_TIME
-        kernel.addEvent(eta, self.name+"_TravelStorage")
+        self.__addWorkerEvent__(kernel, eta, self.name+"_TravelStorage")
 
     
     def __setLoad__(self, kernel=None, max_weight_prod=None):
@@ -141,7 +141,7 @@ class StowageWorker(Worker):
     # will need to be upgraded with multiple storage areas
     def __travelStorage__(self, kernel=None):
         eta = kernel.clock + cs.STOWER_TO_STORAGE_TIME
-        kernel.addEvent(eta, self.name+"_StowProduct")
+        self.__addWorkerEvent__(kernel, eta, self.name+"_StowProduct")
 
     
     def __stowProduct__(self, kernel=None):
@@ -177,7 +177,7 @@ class StowageWorker(Worker):
             eta = kernel.clock + 1e-3
             next_event = self.name+"_TravelAdjacent"
 
-        kernel.addEvent(eta, next_event)
+        self.__addWorkerEvent__(kernel, eta, next_event)
 
 
     def __randomStorage__(self, kernel=None):
@@ -194,12 +194,12 @@ class StowageWorker(Worker):
 
     def __travelAdjacent__(self, kernel=None):
         eta = kernel.clock + cs.STOWER_TRAVEL_TIME
-        kernel.addEvent(eta, self.name+"_StowProduct")
+        self.__addWorkerEvent__(kernel, eta, self.name+"_StowProduct")
 
 
     def __travelParking__(self, kernel=None):
         eta = kernel.clock + cs.STOWER_TO_STORAGE_TIME
-        kernel.addEvent(eta, self.name+"_CheckParking")
+        self.__addWorkerEvent__(kernel, eta, self.name+"_CheckParking")
 
 
     def __smokeCigs__(self, kernel=None):

@@ -27,6 +27,15 @@ class DataStore():
                     'P3':0,
                     'P4':0}}
 
+        # temporary to test out picker functionality
+        self.temp_packing = {
+                'P1':0,
+                'P2':0,
+                'P3':0,
+                'P4':0
+            }
+
+
         self.costs = {
                 'labor': 0,
                 'delivery': 0,
@@ -38,6 +47,10 @@ class DataStore():
         self.revenue = 0
         self.product = ['P1', 'P2', 'P3', 'P4']
         self.product_names = ['Tshirt', 'Hoodie', 'Sweatpants', 'Sneakers']
+
+        # dictionary of format {time : all logs}
+        # to eventually dump into a dataframe at simulation end
+        self._state_dict = {}
     
     def get_KPIs(self):
         kpi = {
@@ -88,11 +101,11 @@ class DataStore():
         """
         inventory = self.get_curr_inventory()
         for prod in inventory:
-            if prod = 'P1':
+            if prod == 'P1':
                 self.costs['inventory_hldg'] += inventory[prod] * cs.P1_HOLDING_COST
-            elif prod = 'P2':
+            elif prod == 'P2':
                 self.costs['inventory_hldg'] += inventory[prod] * cs.P2_HOLDING_COST
-            elif prod = 'P3':
+            elif prod == 'P3':
                 self.costs['inventory_hldg'] += inventory[prod] * cs.P3_HOLDING_COST
             else:
                 self.costs['inventory_hldg'] += inventory[prod] * cs.P4_HOLDING_COST
@@ -140,3 +153,40 @@ class DataStore():
             total += self.costs[k]
         
         return total
+
+
+    def save_state(self, time=0.0):
+        
+        self._state_dict[time] = {
+            'parking_p1'            : self.parking['P1'],
+            'parking_p2'            : self.parking['P2'],
+            'parking_p3'            : self.parking['P3'],
+            'parking_p4'            : self.parking['P4'],
+            'storage_a1_p1'         : self.storage['Area1']['P1'],
+            'storage_a1_p2'         : self.storage['Area1']['P2'],
+            'storage_a1_p3'         : self.storage['Area1']['P3'],
+            'storage_a1_p4'         : self.storage['Area1']['P4'],
+            'storage_a2_p1'         : self.storage['Area2']['P1'],
+            'storage_a2_p2'         : self.storage['Area2']['P2'],
+            'storage_a2_p3'         : self.storage['Area2']['P3'],
+            'storage_a2_p4'         : self.storage['Area2']['P4'],
+            'storage_a3_p1'         : self.storage['Area3']['P1'],
+            'storage_a3_p2'         : self.storage['Area3']['P2'],
+            'storage_a3_p3'         : self.storage['Area3']['P3'],
+            'storage_a3_p4'         : self.storage['Area3']['P4'],
+            'storage_a4_p1'         : self.storage['Area4']['P1'],
+            'storage_a4_p2'         : self.storage['Area4']['P2'],
+            'storage_a4_p3'         : self.storage['Area4']['P3'],
+            'storage_a4_p4'         : self.storage['Area4']['P4'],
+            'temp_packing_p1'       : self.temp_packing['P1'],
+            'temp_packing_p2'       : self.temp_packing['P2'],
+            'temp_packing_p3'       : self.temp_packing['P3'],
+            'temp_packing_p4'       : self.temp_packing['P4'],
+            'costs_labor'           : self.costs['labor'],
+            'costs_delivery'        : self.costs['delivery'],
+            'costs_lost_sales'      : self.costs['lost_sales'],
+            'costs_facilities_fxd'  : self.costs['facilities_fxd'],
+            'costs_packing_stn'     : self.costs['packing_stn'],
+            'costs_inventory_hldg'  : self.costs['inventory_hldg'],
+            'revenue'               : self.revenue
+        }

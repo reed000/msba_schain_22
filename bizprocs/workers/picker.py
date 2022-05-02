@@ -28,9 +28,6 @@ class PickageWorker(Worker):
         # Dictionary of items that we do not have
         self.gap = {}
 
-        # flag indicating if worker is carrying items
-        self.has_items = False
-
         # dictionary with contents of the order to be fulfilled
         self.order = None
 
@@ -55,20 +52,19 @@ class PickageWorker(Worker):
         self.__addEvent__(self.name+"_TravelAdjacent",self.__travelAdjacent__)
         self.__addEvent__(self.name+"_TravelPicking" ,self.__travelPicking__)
         self.__addEvent__(self.name+"_DeliverOrder"  ,self.__deliverOrder__)
+        self.__addEvent__(self.name+"_TransferOrder" ,self.__transferOrder__)
 
         # add self to the kernel's registers
         self.__clockIn__(facility, kernel)
 
     def poke(self, kernel=None):
         self.idle = False   
-        print("{} : Back to work".format(self.name))
         self.__requestOrder__(kernel)
 
 
     def __idling__(self, kernel=None):
         # reset the present task
         self.present_task = {}
-        print("{}: I've got nothing, idling".format(self.name))
         self.idle = True
 
     
@@ -82,32 +78,36 @@ class PickageWorker(Worker):
             return
 
         self.order = kernel.orders.pop(0)
-        print("{}: Got an order, validating".format(self.name))
 
         # check in with the facility the new order is valid:
         order_ok = self.facility.validateOrder(kernel, self.order.getContent())
         
         if order_ok:
-            # if it's good assign yourself
-            # self.facility.setAssignment(self, self.order)
-            print("{}: Order is good, contents are: {}".format(self.name, self.order.getContent()))
-
             # figure out what you need
             self.__calcOrderGap__()
 
             # and walk on over to storage
             self.__travelStorage__(kernel)
         else:
+            # have facility kill the order and log the loss
+            print("{} - {}: Got an order".format(kernel.clock,self.name))
+            print("creation time: ",self.order._creation_time)
+            print("destruction time: ",self.order._destruction_time)
+            print("TOO LATE: ",self.order._TOO_LATE)
+            print("content: ",self.order._content)
+            print("number items: ",self.order.n_items)
+            print("profit: ",self.order.order_profit)
+            print("penalty: ",self.order.order_penalty)
+
+            self.facility.killOrder(kernel, self.order)
+
             # request another one
-            print("{}: Order is no-good, contents are: {}".format(self.name, self.order.getContent()))
             self.__requestOrder__(kernel)        
 
 
     def __travelStorage__(self, kernel=None):
         ## figure out where you're supposed to go
         self.__setDestination__(kernel, xfer_type="INITIAL")
-        print("{}: I'm headed to first: {}".format(self.name, self.destination))
-
 
         eta = kernel.clock + cs.STOWER_PICKUP_TIME
         self.__addWorkerEvent__(kernel, eta, self.name+"_CheckArea")
@@ -121,8 +121,6 @@ class PickageWorker(Worker):
 
         # if you have all the items you don't need to be here, go back
         if self.order_completed:
-            print("{}: Done with order: {}".format(self.name, self.order.getContent()))
-
             self.destination = "Picking"
             eta = kernel.clock + cs.PICKER_TO_STORAGE_TIME
             self.__addWorkerEvent__(kernel, eta, self.name+"_DeliverOrder")
@@ -130,8 +128,6 @@ class PickageWorker(Worker):
 
         # get the items where you are
         area_inventory = kernel.DATA_STORAGE.storage[self.destination]        
-        print("{}: This joint {} has : {}".format(self.name, self.destination, self.gap))
-        print("{}: I still need: {}".format(self.name, self.gap))
 
         # search for each missing item
         for missing_item in self.gap:
@@ -203,7 +199,7 @@ class PickageWorker(Worker):
 
         self.destination = dest_dict[np.random.randint(0,4,1)]
 
-    def __destLogicRandomTransfer__(self, kernel=None):       
+    def __destLogicRandomTransfer__(self, kernel=None):
         from_to_dict = {
             'Area1' : ['Area2', 'Area2'],
             'Area2' : ['Area1', 'Area3'],
@@ -216,10 +212,6 @@ class PickageWorker(Worker):
 
 
     def __heftItem__(self, kernel=None, missing_item=None):
-        # Register you have something in your hands
-        if self.has_items == False:
-            self.has_items = True
-
         self.hands[missing_item] += 1
         kernel.DATA_STORAGE.storage[self.destination][missing_item] -= 1
 
@@ -238,6 +230,15 @@ class PickageWorker(Worker):
     def __deliverOrder__(self, kernel=None):
         for item in self.hands:
             kernel.DATA_STORAGE.temp_packing[item] += self.hands[item]
+
+        eta = kernel.clock + cs.PICKER_TO_PACKING_TIME
+        self.__addWorkerEvent__(kernel, eta, self.name+"_TransferOrder")
+
+
+    def __transferOrder__(self, kernel=None):
+        lbs_index = self.facility.my_packing.getLeastBurdenedStation()
+        lbs = self.facility.my_packing.getStationByIndex(lbs_index)
+        lbs.addOrder(self.order)
         
         self.__resetOrderCounters__()
         self.__requestOrder__(kernel)
@@ -256,12 +257,11 @@ class PickageWorker(Worker):
 
         self.gap = gap
     
+
     def __isOrderComplete__(self):
         self.__calcOrderGap__()
 
-        print("Gap: ", self.gap)
         if not self.gap:
-            print("Hands: ",self.hands)
             self.order_completed = True
 
 
@@ -278,9 +278,6 @@ class PickageWorker(Worker):
 
         # Dictionary of items that we do not have
         self.gap = {}
-
-        # flag indicating if worker is carrying items
-        self.has_items = False
 
         # flag indicating if the current order is over
         self.order_completed = False

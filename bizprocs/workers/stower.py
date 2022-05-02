@@ -83,28 +83,43 @@ class StowageWorker(Worker):
 
         # Case 1: 
         # ono.wav, the parking area is empty
-        if len(max_weight_prod) > 1 and \
-            kernel.DATA_STORAGE.parking[max_weight_prod[0]]==0:
+        if kernel.DATA_STORAGE.parking[max_weight_prod]==0:
             load_out = -999
 
         # Case 2:
         # redundantly max weight products in parking area
         # select randomly
-        elif len(max_weight_prod) > 1 and \
-            kernel.DATA_STORAGE.parking[max_weight_prod[0]]>0:
-            random_select = np.random.randint(0,len(max_weight_prod)-1)
-            max_weight_prod = max_weight_prod[random_select]
-            load_out = min(kernel.DATA_STORAGE.parking[max_weight_prod], \
-                            self.max_capacity) 
-
-        # Case 3:
-        # redundantly max weight products in parking area
-        # select randomly
         else:
-            max_weight_prod = max_weight_prod[0]
             load_out = min(kernel.DATA_STORAGE.parking[max_weight_prod], \
                             self.max_capacity)   
 
+         # ! ! ! ! ! ! ! ! ! ! !
+         # WARNING: DEPRECATED !
+         # ! ! ! ! ! ! ! ! ! ! !
+#        # Case 1: 
+#        # ono.wav, the parking area is empty
+#        if len(max_weight_prod) > 1 and \
+#            kernel.DATA_STORAGE.parking[max_weight_prod[0]]==0:
+#            load_out = -999
+#
+#        # Case 2:
+#        # redundantly max weight products in parking area
+#        # select randomly
+#        elif len(max_weight_prod) > 1 and \
+#            kernel.DATA_STORAGE.parking[max_weight_prod[0]]>0:
+#            random_select = np.random.randint(0,len(max_weight_prod)-1)
+#            max_weight_prod = max_weight_prod[random_select]
+#            load_out = min(kernel.DATA_STORAGE.parking[max_weight_prod], \
+#                            self.max_capacity) 
+#
+#        # Case 3:
+#        # redundantly max weight products in parking area
+#        # select randomly
+#        else:
+#            max_weight_prod = max_weight_prod[0]
+#            load_out = min(kernel.DATA_STORAGE.parking[max_weight_prod], \
+#                            self.max_capacity)   
+#
         return load_out, max_weight_prod
 
 
@@ -167,14 +182,14 @@ class StowageWorker(Worker):
             next_event = self.name+"_CheckParking"
         elif self.destination == "Area1":
             warnings.warn("Set destination to Area1 despite already stowing...")
-            eta = kernel.clock + 1e-3
+            eta = kernel.clock + 1e-1
             next_event = self.name+"_TravelAdjacent"
         elif self.destination == "Area2":
-            eta , next_event = kernel.clock + 1e-3, self.name+"_TravelAdjacent"
+            eta , next_event = kernel.clock + 1e-1, self.name+"_TravelAdjacent"
         elif self.destination == "Area3":
-            eta, next_event = kernel.clock + 1e-3, self.name+"_TravelAdjacent"
+            eta, next_event = kernel.clock + 1e-1, self.name+"_TravelAdjacent"
         elif self.destination == "Area4":
-            eta = kernel.clock + 1e-3
+            eta = kernel.clock + 1e-1
             next_event = self.name+"_TravelAdjacent"
 
         self.__addWorkerEvent__(kernel, eta, next_event)

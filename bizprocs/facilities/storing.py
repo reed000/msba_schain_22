@@ -33,14 +33,14 @@ class Storage(BusinessProcess):
         shift_interval = 8 * 60 * 60 
         time_shift_change = 0
 
-        kernel.addEvent(0, "ShiftChangeStorage")
-        kernel.addEvent(shift_interval, "ShiftChangeStorage")
+        # kernel.addEvent(0, "ShiftChangeStorage")
+        # kernel.addEvent(shift_interval, "ShiftChangeStorage")
 
         # for the time being, only 2 shift changes
 
-        # while time_shift_change < kernel.runtime:           
-        #     kernel.addEvent(time_shift_change, "ShiftChangeStorage")
-        #     time_shift_change += shift_interval
+        while time_shift_change < kernel.runtime:           
+            kernel.addEvent(time_shift_change, "ShiftChangeStorage")
+            time_shift_change += shift_interval
 
 
     def __shiftChange__(self, kernel=None):

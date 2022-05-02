@@ -10,7 +10,6 @@ from bizprocs.process import BusinessProcess
 class Worker(BusinessProcess):
     def __init__(self, facility=None, kernel=None, num=0):
         super().__init__()       
-        # # print("Worker()::__init__() is getting ready for the day")        
 
         # make constant attributes
         self.facility = facility
@@ -44,8 +43,6 @@ class Worker(BusinessProcess):
             time_scheduled, event_scheduled = kernel.addEvent(time_in, event_in)
 
             # and store what you're doing in case you go off shift
-            # print("{} :: Storing {} at {} in {}"\
-            #    .format(kernel.clock, event_scheduled, time_scheduled, self.name))
             self.present_task[time_scheduled] = event_scheduled
 
     def __clockIn__(self, facility=None, kernel=None):
@@ -66,30 +63,25 @@ class Worker(BusinessProcess):
 
 
     def clockOut(self, kernel=None):
-        # check final tasking
-        # print(self.name+" is done for the day, man.")
-
-        # print("{} :: is there a length? {}".format(kernel.clock,len(self.present_task)))
         # if there is a present task
         if len(self.present_task):
             # schedule clock out for the second after
-            next_available_time = min(self.present_task, key=self.present_task.get) + 1e-3
+            next_available_time = min(self.present_task, key=self.present_task.get) + 1e-1
             kernel.addEvent(next_available_time, self.name + "_Terminate")
-            
-            # print(str(kernel.clock) + \
-            #    " {} 's last task ending {}"\
-            #        .format(self.name,self.present_task))
 
             self.present_task = {}
         else:
             # immediately terminate
-            immediately = kernel.clock + 1e-3
+            immediately = kernel.clock + 1e-1
             kernel.addEvent(immediately, self.name + "_Terminate")
 
         self.last_task = True
 
 
     def __terminate__(self, kernel=None):
+        # remove your name from your facility worker list
+        self.facility.workers.pop(self.name)
+
         # remove your name from the process list
         kernel.processes.pop(self.name)
         

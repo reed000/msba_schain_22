@@ -4,6 +4,7 @@ Business Process :: Picking()
 import numpy as np
 import pandas as pd
 import constants as cs
+import warnings 
 
 from bizprocs.process import BusinessProcess
 from bizprocs.workers.picker import PickageWorker
@@ -25,6 +26,10 @@ class Picking(BusinessProcess):
 
         # allocate all shift changes
         self.__scheduleShiftChanges__(kernel)
+
+        # link to packing
+        if 'packing' in kernel.processes:
+            self.my_packing = kernel.processes['packing']
         
 
     def __scheduleShiftChanges__(self, kernel=None):
@@ -33,14 +38,14 @@ class Picking(BusinessProcess):
         shift_interval = 8 * 60 * 60 
         time_shift_change = 0
 
-        kernel.addEvent(0, "ShiftChangePicking")
-        kernel.addEvent(shift_interval, "ShiftChangePicking")
+        # kernel.addEvent(0, "ShiftChangePicking")
+        # kernel.addEvent(shift_interval, "ShiftChangePicking")
 
         # for the time being, only 2 shift changes
 
-        # while time_shift_change < kernel.runtime:           
-        #     kernel.addEvent(time_shift_change, "ShiftChangeStorage")
-        #     time_shift_change += shift_interval
+        while time_shift_change < kernel.runtime:           
+            kernel.addEvent(time_shift_change, "ShiftChangePicking")
+            time_shift_change += shift_interval
 
 
     def __shiftChange__(self, kernel=None):
@@ -62,6 +67,10 @@ class Picking(BusinessProcess):
 
 
     def validateOrder(self, kernel, order_content):
+        if not order_content:
+            warnings.warn("{} at time {} got blank order".format(self.name, kernel.clock))
+            return False
+
         total_unmet = {
             'P1' : 0,
             'P2' : 0,
@@ -99,6 +108,8 @@ class Picking(BusinessProcess):
 
         return has_margin
         
+    def killOrder(self, kernel=None, dead_order=None):
+        pass
 
     def setAssignment(self, worker, order):
         self._assignments[worker] = order

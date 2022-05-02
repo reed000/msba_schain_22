@@ -14,8 +14,7 @@ class BusinessProcess:
         self._function_dict[event_name] = event_function
 
     def handleEvent(self, event_name:str, kernel=None):
-        kernel.addLogs("Clock {} :: Handling event: {} doing {}".format(kernel.clock, self.name, event_name))
+        kernel.addLogs("Clock {} :: Handling event: {} doing {}", [kernel.clock, self.name, event_name])
 
-        # print("handling event: {}".format(event_name)) 
         return self._function_dict[event_name](kernel)
         

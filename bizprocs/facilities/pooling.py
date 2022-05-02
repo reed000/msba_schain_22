@@ -68,7 +68,6 @@ class Pooling(BusinessProcess):
         return weight
 
     def __getDelivery__(self, kernel=None):
-        # print("getting a delivery in Pooling()")
         shipment = self.delivery_queue[kernel.clock]
 
         # TODO Check weights
@@ -97,7 +96,5 @@ class Pooling(BusinessProcess):
                 kernel.DATA_STORAGE.add_cost('delivery', cs.DELIVERY_COST_DAILY)
             elif kernel.options['DELIVERY_SCHEDULE'] == "WEEKLY":
                 kernel.DATA_STORAGE.add_cost('delivery', cs.DELIVERY_COST_WEEKLY)
-            
-           # print("Delivery Sent back!!!!")
-            
+                        
         # TODO: Poke next shift workers event

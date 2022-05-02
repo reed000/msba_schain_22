@@ -30,6 +30,15 @@ class Order():
         # }
         self._content = content
 
+        # total number of items, period
+        self.n_items = self.__calcItems__()
+
+        # how much the order is worth when shipped
+        self.order_profit = self.__calcProfit__()
+
+        # how much it'll hurt if the order is lost
+        self.order_penalty = self.__calcPain__()
+
     # TODO - might not actually need a UID???   ....Could use order timestamp as ID
     def __createUid__(self, kernel):
         postfix = 0
@@ -41,11 +50,35 @@ class Order():
 
         return uid
 
+    def __calcItems__(self):
+        return np.array(list(self.getContent().values())).sum()
+
+    def __calcProfit__(self):
+        return cs.P1_PROFIT * self._content['P1'] + \
+               cs.P2_PROFIT * self._content['P2'] + \
+               cs.P3_PROFIT * self._content['P3'] + \
+               cs.P4_PROFIT * self._content['P4']
+
+    def __calcPain__(self):
+        return cs.P1_PENALTY * self._content['P1'] + \
+               cs.P2_PENALTY * self._content['P2'] + \
+               cs.P3_PENALTY * self._content['P3'] + \
+               cs.P4_PENALTY * self._content['P4']
+
     def getContent(self):
         return self._content
 
     def getOrderItemQty(self, item_id):
         return self._content[item_id]
+
+    def getTotalItems(self):
+        return self.n_items
+
+    def getProfit(self):
+        return self.order_profit
+
+    def getPenalty(self):
+        return self.order_penalty
 
     def isOrderExpired(self, clock):
         if clock > self._destruction_time:

@@ -1,11 +1,12 @@
 import pandas as pd
 import numpy as np
-from kernel import Kernel
+from kernel_wHeap import Kernel
 import constants as cs
 
 from bizprocs.facilities.pooling import Pooling
 from bizprocs.facilities.storing import Storage
 from bizprocs.facilities.picking import Picking
+from bizprocs.facilities.packing import Packing
 from bizprocs.facilities.ordering import Orders
 
 
@@ -17,7 +18,7 @@ def PRIMARY_LOOP():
         'parking' : Pooling(),
         'stowage' : Storage(),
         'picking' : Picking(),
-        # 'packing' : Packing(),
+        'packing' : Packing(),
         'orders'  : Orders()
     }
 
@@ -27,7 +28,9 @@ def PRIMARY_LOOP():
         'OrderUp': ('orders', 'OrderUp'),
         'ShiftChangeStorage' : ('stowage', 'ShiftChangeStorage'),
         'ShiftChangePicking' : ('picking', 'ShiftChangePicking'),
-        'PokeWorkersPicking' : ('picking', 'PokeWorkersPicking')
+        'PokeWorkersPicking' : ('picking', 'PokeWorkersPicking'),
+        'ShiftChangePacking' : ('packing', 'ShiftChangePacking'),
+        'PokeWorkersPacking' : ('packing', 'PokeWorkersPacking')
      }
 
     # SHIFTS every day 3 slots # workers per slot = [12-8, 8-4, 4-12]
@@ -67,7 +70,8 @@ def PRIMARY_LOOP():
          'PACKING_WORKERS'      :  5,           # packing_shift
          'PACKING_STATIONS'     :  4,           # N
          'KENNY_LOGGINS'        :  False,       # [True, False]
-         'SAVE_DATA'            :  False        # [True, False]
+         'SAVE_DATA'            :  False,       # [True, False]
+         'FINAL_ECHO'           :  True         # [True, False]
      }
 
     simulation_loop = Kernel(procs=processes,

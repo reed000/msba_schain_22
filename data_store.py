@@ -11,36 +11,37 @@ class DataStore():
 
         self.storage = {
             'Area1': {'P1':0,
-                    'P2':0,
-                    'P3':0,
-                    'P4':0},
+                      'P2':0,
+                      'P3':0,
+                      'P4':0},
             'Area2': {'P1':0,
-                    'P2':0,
-                    'P3':0,
-                    'P4':0},
+                      'P2':0,
+                      'P3':0,
+                      'P4':0},
             'Area3': {'P1':0,
-                    'P2':0,
-                    'P3':0,
-                    'P4':0},
+                      'P2':0,
+                      'P3':0,
+                      'P4':0},
             'Area4': {'P1':0,
-                    'P2':0,
-                    'P3':0,
-                    'P4':0}}
+                      'P2':0,
+                      'P3':0,
+                      'P4':0}
+        }
 
-        # temporary to test out picker functionality
+        # TODO temporary to test out picker functionality
         self.temp_packing = {
-                'P1':0,
-                'P2':0,
-                'P3':0,
-                'P4':0
-            }
+            'P1':0,
+            'P2':0,
+            'P3':0,
+            'P4':0
+        }
 
-
+        # TODO Add total IDLE time 
         self.costs = {
                 'labor': 0,
                 'delivery': 0,
                 'lost_sales': 0,
-                'facilities_fxd': 0,
+                'facilities_fxd': cs.FXD_FACILITY, #$5M for year
                 'packing_stn': 0,
                 'inventory_hldg': 0
             }
@@ -54,14 +55,14 @@ class DataStore():
     
     def get_KPIs(self):
         kpi = {
-            "                   Revenue": self.revenue,
-            "        (Delivery Expense)": self.costs['delivery'],
-            "      {Lost Sales Penalty)": self.costs['lost_sales'],
-            "           (Labor Expense)": self.costs['labor'],
-            "   (Facilities Fixed Cost)": self.costs['facilities_fxd'],
-            " (Packing Station Expense)": self.costs['packing_stn'],
-            "  (Inventory Holding Cost)": self.costs['inventory_hldg'],
-            "------------TOTAL PROFIT =": self.revenue - self.get_total_cost()
+            "\n                   Revenue": self.revenue,
+            "\n        (Delivery Expense)": self.costs['delivery'],
+            "\n      {Lost Sales Penalty)": self.costs['lost_sales'],
+            "\n           (Labor Expense)": self.costs['labor'],
+            "\n   (Facilities Fixed Cost)": self.costs['facilities_fxd'],
+            "\n (Packing Station Expense)": self.costs['packing_stn'],
+            "\n  (Inventory Holding Cost)": self.costs['inventory_hldg'],
+            "\n------------TOTAL PROFIT =": self.revenue - self.get_total_cost()
         }
         return kpi
 
@@ -157,8 +158,10 @@ class DataStore():
             total += self.costs[k]
         
         return total
-
-
+    
+    def get_profit(self):
+        return (self.revenue - self.get_total_cost())
+        
     def save_state(self, time=0.0):
         
         self._state_dict[time] = {

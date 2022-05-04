@@ -62,6 +62,8 @@ class StowageWorker(Worker):
         # if this is the load then there is nothing in parking
         if load == -999:
             warnings.warn("Stowage Empty at time {}".format(kernel.clock))
+            
+            # TODO: Handle wait / or Idle - recheck later?
             return
 
         # grab it with your hands
@@ -158,7 +160,7 @@ class StowageWorker(Worker):
         eta = kernel.clock + cs.STOWER_TO_STORAGE_TIME
         self.__addWorkerEvent__(kernel, eta, self.name+"_StowProduct")
 
-    
+
     def __stowProduct__(self, kernel=None):
         # set the self.dropoff variable
         if self.stow_strategy == "DESIGNATED":

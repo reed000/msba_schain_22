@@ -13,7 +13,6 @@ class Worker(BusinessProcess):
 
         # make constant attributes
         self.facility = facility
-        self.labor_rate = cs.LABOR_RATE
         self.name = "Worker" + self.facility.name + str(kernel.clock) + '_' + str(num)
         self.start_time = np.nan
         self.end_time = np.nan
@@ -30,6 +29,8 @@ class Worker(BusinessProcess):
 
         # note that the class inhereiting Worker
         # should put __clockIn__ within its init function
+
+        # IDLE state can be generalized here
 
     def __addWorkerEvent__(self, kernel, time_in, event_in):
             # reset the present task
@@ -64,16 +65,17 @@ class Worker(BusinessProcess):
 
     def clockOut(self, kernel=None):
         # if there is a present task
+        terminate_time = kernel.clock
         if len(self.present_task):
             # schedule clock out for the second after
-            next_available_time = min(self.present_task, key=self.present_task.get) + 1e-1
-            kernel.addEvent(next_available_time, self.name + "_Terminate")
-
+            terminate_time = min(self.present_task, key=self.present_task.get) + 1e-1
             self.present_task = {}
         else:
             # immediately terminate
-            immediately = kernel.clock + 1e-1
-            kernel.addEvent(immediately, self.name + "_Terminate")
+            terminate_time = kernel.clock + 1e-1
+        
+        self.end_time = terminate_time
+        kernel.addEvent(terminate_time, self.name + "_Terminate")
 
         self.last_task = True
 
@@ -88,9 +90,20 @@ class Worker(BusinessProcess):
         # remove your events from the functional dictionary
         for personal_event in self._function_dict:
             kernel.event_dictionary.pop(personal_event)
+        
+        # Pay the Worker for the good deeds
+        self.__pay_worker__(kernel)
 
+    def __pay_worker__(self, kernel=None):
+        """
+        you may use seconds as the minimal unit calculation for continuous payment
+        """
+        labor_time = self.end_time - self.start_time
+        paycheck = round(labor_time/3600 * cs.LABOR_RATE)  # Hourly rate
 
+        kernel.DATA_STORAGE.costs['labor'] += paycheck
+        # print( "{} paid ${}".format(self.name, paycheck))
+        
     def report(self):
-        # # print metrics
-        # print( "I am a {} at ${}".format(self.worker_type, self.labor_rate))
+        # print metrics
         pass

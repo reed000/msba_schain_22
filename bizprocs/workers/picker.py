@@ -72,12 +72,12 @@ class PickageWorker(Worker):
         # You're back at the picking station
         # Assign yourself the next order from the queue
 
-        if not kernel.orders:
+        if kernel.orders.empty(): # not kernel.orders:
             # no orders - bail out until poked
             self.__idling__(kernel)
             return
 
-        self.order = kernel.orders.pop(0)
+        self.order = kernel.orders.get() # kernel.orders.pop(0)
 
         # check in with the facility the new order is valid:
         order_ok = self.facility.validateOrder(kernel, self.order.getContent())

@@ -11,24 +11,8 @@ import logging
 from datetime import datetime
 
 import heapq as MinHeap
+import queue as MuhQueue
 
-# # # # # # # # # # # # # # # # # #
-# Notional data structures below  #
-# # # # # # # # # # # # # # # # # #
-
-    # eventID : {busProc name,  function}
-#    event_dictionary = {
-#        'DeliveryIn' : ('parking','EventDelivery'))
-#    }
-
-    # tuple: (TIMESTAMP, eventID)
-#    self.event_queue = [
-#        (800  , DockDelivery),
-#        (1600 , ReceiveOrders),
-#        (3200 , WorkerStorage_2347_0_TransitStorage),
-#        (3210 , WorkerStorage_2347_0_StowItem),
-#        (3330 , WorkerStorage_2347_0_TransitParking),
-#    ]
 
 class Kernel():
 
@@ -56,6 +40,9 @@ class Kernel():
         # DATA initialized 
         self.DATA_STORAGE = DataStore()
 
+        # Add Packing Station Costs
+        self.DATA_STORAGE.costs['packing_stn'] += self.options['PACKING_STATIONS'] * cs.PACK_STATION_COST
+
         # LOGGING
         if self.options['KENNY_LOGGINS']:
             log_name = datetime.now().strftime("%Y_%m_%d-%H:%M:%S") + '_logger.log'
@@ -69,18 +56,19 @@ class Kernel():
             self.LOGS.addHandler(handler)
             self.addLogs("StartUp :: logger object created",[])
 
+        # set up the List of orders - QUEUE  (.append, .pop(0))  (get put)
+        self.orders = MuhQueue.Queue()
+
         # initialize processes
         self.processes = procs
         for proc_name in self.processes:
+            self.addLogs("Booting: {}".format(proc_name),[])
             self.processes[proc_name].startup(kernel=self)
-
-        # set up the List of orders - QUEUE  (.append, .pop(0))
-        self.orders = []
-
+     
         # set up the initial dictionary of modules and events
         self.event_dictionary = event_dictionary
 
-        # ! ! ! W A R N I N G ! ! ! 
+        # TODO ! ! ! W A R N I N G ! ! ! Set parking 0
         # HARD CODE this for TESTING
         self.DATA_STORAGE.parking = {
                 'P1':100,
@@ -172,9 +160,9 @@ class Kernel():
         eventType = MinHeap.heappop(self.event_queue)[1]
 
         # find which process must handle the event and its identifying name
-        self.addLogs("Clock {} :: Loading event - {}", [self.clock, eventType])
+        self.addLogs("T={}::NewEvent={}", [self.clock, eventType])
         event_handler, event_name = self.event_dictionary[eventType]
-        self.addLogs("Clock {} :: Loaded event - {} to be done by {}", [self.clock, event_name,event_handler])
+        self.addLogs("T={}::LoadedEvent={}::Proc={}", [self.clock, event_name,event_handler])
 
         # run that process' event handler
         self.processes[event_handler].handleEvent(event_name, kernel=self)
@@ -197,7 +185,6 @@ class Kernel():
         return event_time, event_name
 
     def __checkEventTime__(self, event_time):
-        # HAHAHAHAHAHAHAHAHAHAH RECURSION
         if event_time in self.event_times:
             event_time += 1e-1
             event_time = self.__checkEventTime__(event_time)
@@ -212,7 +199,7 @@ class Kernel():
 
     def report(self):
         # output data storage to make sure we're not messing up
-        profit = self.DATA_STORAGE.revenue
+        # print("REPORT ORDERS: {}".format(self.orders.qsize()))
 
         # transmit entire data storage to a time-stamped dict
         if self.options['SAVE_DATA']:
@@ -235,31 +222,36 @@ class Kernel():
             orient='index'
         )
 
-        df.to_csv("output/simout.csv")
+        df.to_csv("output/simout_{}.csv".format(datetime.now().strftime("%m_%d-%H:%M")))
 
     def finalEcho(self):
-        pass
+        echo_out = self.DATA_STORAGE.get_KPIs()
+        print(echo_out)
+        self.addLogs(echo_out, [])
 
-    # TODO Can be moved to an other class
-    def get_day_and_shift(timestamp):
+    def get_day_and_shift(self, timestamp):
         """
-        Returns Tuple (DAY, SHIFT #) of current wall clock
+        Returns Tuple (str: DAY, int: SHIFT #) of current wall clock
+
         tested in explore.ipynb
         """
         hour = 60 * 60
         day = hour * 24
         week = day * 7
 
+        # modulus for seconds value from THU 12:00
         curr_time = timestamp % day
         curr_day = timestamp % week
 
-        # Calculate SHIFT [0,1,2]
-        if curr_time <= (hour * 8): #First 8 hours
+        # Calculate SHIFT [0,1,2,3] | (0,1) = Shift 1 0000:8000
+        if curr_time <= (hour * 4): #First 4 hours
             shift = 0
-        elif curr_time <= (hour * 16 ):
+        elif curr_time <= (hour * 8): # Next 4 hours
             shift = 1
-        else:  # shift < hour * 24 = 86400 = week
+        elif curr_time <= (hour * 16 ):  # Next 8 hours
             shift = 2
+        else:  # shift < hour * 24 = 86400 = week
+            shift = 3
 
         # Calculate DAY of WEEK
         days = ["THU", "FRI", "SAT", "SUN", "MON", "TUE", "WED"]
@@ -270,3 +262,17 @@ class Kernel():
         
         # print("{}: {} shift {}".format(timestamp, today, shift))
         return (today, shift)
+
+    def get_midnight_strikes(self):
+        midnights = []
+        for i in range(366): 
+            midnights.append(i*86400)
+
+            # TODO self.addEvent(i, "MIDNIGHT")
+
+            # TODO Inventory holding costs are accrued on a continuous basis. For initial starting inventory, 
+            # assume that there is no inventory holding cost before time 0 but inventory holding cost 
+            # would start accruing from time 0. For convenience, you may use seconds as the minimal 
+            # unit calculation for the inventory holding cost
+
+        return midnights

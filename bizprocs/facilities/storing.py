@@ -55,8 +55,12 @@ class Storage(BusinessProcess):
 
 
     def __pokeWorkers__(self, kernel=None):
-        # this method will get workers to 
+        # this method will get workers to move if idle
         pass
+        # for working_man in self.workers:
+        #     # make them do something if idle
+        #     if self.workers[working_man].idle:
+        #         self.workers[working_man].poke(kernel)
         
 
 """

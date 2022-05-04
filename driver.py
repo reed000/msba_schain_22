@@ -1,3 +1,10 @@
+"""
+This is the driver script for the entire project
+
+Project Entry Point
+- Set variables in Constants.py
+- Set options below
+"""
 import pandas as pd
 import numpy as np
 from kernel_wHeap import Kernel
@@ -10,9 +17,31 @@ from bizprocs.facilities.packing import Packing
 from bizprocs.facilities.ordering import Orders
 
 
-"""
-This is the driver script for the entire project
-"""
+SET_RUNTIME = 3600*24*30*2 # 2 weeks
+# 60*525600 # minutes = 1 year
+
+def find_delivery_file():
+    """
+    TODO: Does this need to be automated for 'out of box' solution
+    TODO Add delivery file path to kernel.options
+    """
+    weekly_delivery_times = []
+    daily_delivery_times = []
+
+    week = 604800
+    day = 86400
+    hour = 3600
+    minute = 60
+
+    daily_first = (3600)*9
+    Mon_first = 345600 + (3600)*9
+    for i in range (31536000): 
+        if (i - daily_first) % day == 0:
+            daily_delivery_times.append(i)
+        if (i - Mon_first) % week == 0:
+            weekly_delivery_times.append(i)
+
+
 def PRIMARY_LOOP():
     processes = {
         'parking' : Pooling(),
@@ -22,7 +51,6 @@ def PRIMARY_LOOP():
         'orders'  : Orders()
     }
 
-    # OrderIN, DeliveryIN, OrderOUT, 
     event_dictionary = {
         'DeliveryIn' : ('parking','getDelivery'),
         'OrderUp': ('orders', 'OrderUp'),
@@ -31,12 +59,16 @@ def PRIMARY_LOOP():
         'PokeWorkersPicking' : ('picking', 'PokeWorkersPicking'),
         'ShiftChangePacking' : ('packing', 'ShiftChangePacking'),
         'PokeWorkersPacking' : ('packing', 'PokeWorkersPacking')
+        # Order Out
      }
 
     # SHIFTS every day 3 slots # workers per slot = [12-8, 8-4, 4-12]
+
+    # find 100 order of workers
+    # loop 80 - 120 workers for each of the 21 time slots per worker
     stowing_shift = {
         "SUN": [5, 5, 5],
-        "MON": [5, 5, 5],
+        "MON": [20, 5, 5],
         "TUE": [5, 5, 5],
         "WED": [5, 5, 5],
         "THU": [5, 5, 5],
@@ -62,26 +94,36 @@ def PRIMARY_LOOP():
         "SAT": [5, 5, 5]
     }
     options_dict = {
+        # Optimize Variables
          'DELIVERY_SCHEDULE'    : 'DAILY',      #['DAILY', 'WEEKLY'] _TEST_
          'STORAGE_MECHANIC'     : 'DESIGNATED', #['DESIGNATED', 'RANDOM']
-         'STORAGE_WORKERS'      :  5,           # stowing_shift
+         'STORAGE_WORKERS'      :  20,           # stowing_shift
          'PICKING_MECHANIC'     : 'DESIGNATED', #['DESIGNATED', 'RANDOM']
-         'PICKING_WORKERS'      :  5,           # picking_shift
-         'PACKING_WORKERS'      :  5,           # packing_shift
-         'PACKING_STATIONS'     :  4,           # N
-         'KENNY_LOGGINS'        :  False,       # [True, False]
-         'SAVE_DATA'            :  False,       # [True, False]
-         'FINAL_ECHO'           :  True         # [True, False]
+         'PICKING_WORKERS'      :  100,           # picking_shift
+         'PACKING_WORKERS'      :  20,           # packing_shift
+         'PACKING_STATIONS'     :  20,           # N
+        # Debug Variables
+         'KENNY_LOGGINS'        :  False,        # [True, False*]
+         'SAVE_DATA'            :  False,       # [True*, False]
+         'FINAL_ECHO'           :  True,        # [True*, False]
+         'ORDER_TEST'           :  False,        # [True, False*]
+         #'ORDER_FILE'           : #'strategies/final-project-2022m4_orders.csv' ## moreeee compute :(
+         'ORDER_FILE'           : 'strategies/order_sample.csv' 
+
      }
 
     simulation_loop = Kernel(procs=processes,
-                            runtime=60*525600, # minutes = 1 year
+                            runtime=SET_RUNTIME,
                             event_dictionary=event_dictionary,
                             options=options_dict)
 
     sim_results = simulation_loop.mainLoop()
 
     #try:
+    #    for loop
+            # - set different options
+            # - scipy optimize 
+            # - target (simulation_loop.revenue)
     #    sim_results = simulation_loop.mainLoop()
     #except:
     #    print("Ono.wav")

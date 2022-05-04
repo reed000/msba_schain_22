@@ -17,4 +17,3 @@ class BusinessProcess:
         kernel.addLogs("Clock {} :: Handling event: {} doing {}", [kernel.clock, self.name, event_name])
 
         return self._function_dict[event_name](kernel)
-        

@@ -7,6 +7,7 @@ import constants as cs
 import math
 
 from bizprocs.process import BusinessProcess
+from bizprocs.facilities.storing import Storage
 
 DAILY_DELIVER_FILE = 'strategies/daily_delivery.csv'
 WEEKLY_DELIVER_FILE = 'strategies/weekly_delivery.csv'
@@ -19,17 +20,13 @@ class Pooling(BusinessProcess):
         self.delivery_queue = {}
 
     def startup(self, kernel=None):
-        # TODO - option for weekly or yearly deliveries
-        # possibly governed by constant
         if kernel.options['DELIVERY_SCHEDULE'] == "DAILY":
             kernel.DATA_STORAGE.add_cost('delivery', cs.DELIVERY_COST_DAILY)
-            # self.__scheduleDailyDeliveries__(kernel)            
             self.__read_strategy__(WEEKLY_DELIVER_FILE, kernel)
 
         elif kernel.options['DELIVERY_SCHEDULE'] == "WEEKLY":
             kernel.DATA_STORAGE.add_cost('delivery', cs.DELIVERY_COST_WEEKLY)
             self.__read_strategy__(WEEKLY_DELIVER_FILE, kernel)
-            # self.__scheduleWeeklyDeliveries__(kernel)
         else:
             self.__read_strategy__('_TEST_')
 
@@ -98,3 +95,4 @@ class Pooling(BusinessProcess):
                 kernel.DATA_STORAGE.add_cost('delivery', cs.DELIVERY_COST_WEEKLY)
                         
         # TODO: Poke next shift workers event
+        # self.__addEvent__("PokeWorkersStorage",Storage.__pokeWorkers__)

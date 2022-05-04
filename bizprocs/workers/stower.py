@@ -15,7 +15,7 @@ class StowageWorker(Worker):
         super().__init__(facility, kernel, num)
 
         # define the default first task
-        self.__startUpTask__ = self.__checkParking__
+        self.__startUpTask__ = self.__idling__
 
         # what the worker is carrying
         self.hands = {}

@@ -104,7 +104,6 @@ class Worker(BusinessProcess):
     def poke(self, kernel=None):
         self.idle = False
         self.idle_time += (kernel.clock - self.idle_start)
-        
 
 
     def __idling__(self, kernel=None):

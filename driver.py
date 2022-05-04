@@ -16,7 +16,7 @@ from bizprocs.facilities.picking import Picking
 from bizprocs.facilities.packing import Packing
 from bizprocs.facilities.ordering import Orders
 
-SET_RUNTIME = 3600*24*5 # 5 days
+SET_RUNTIME = 3600*24*10 # 5 days
 # SET_RUNTIME = 3600*24*30*2 # 2 months
 # SET_RUNTIME = 60*525600 # minutes = 1 year
 
@@ -96,16 +96,16 @@ def PRIMARY_LOOP():
     }
     options_dict = {
         # Optimize Variables
-         'DELIVERY_SCHEDULE'    : 'DAILY',      #['DAILY', 'WEEKLY'] _TEST_
+         'DELIVERY_SCHEDULE'    : 'WEEKLY',      #['DAILY', 'WEEKLY'] _TEST_
          'STORAGE_MECHANIC'     : 'DESIGNATED', #['DESIGNATED', 'RANDOM']
-         'STORAGE_WORKERS'      :  10,           # stowing_shift
+         'STORAGE_WORKERS'      :  50,         # stowing_shift
          'PICKING_MECHANIC'     : 'DESIGNATED', #['DESIGNATED', 'RANDOM']
-         'PICKING_WORKERS'      :  10,           # picking_shift
-         'PACKING_WORKERS'      :  10,           # packing_shift
-         'PACKING_STATIONS'     :  10,           # N
+         'PICKING_WORKERS'      :  10,          # picking_shift
+         'PACKING_WORKERS'      :  10,          # packing_shift
+         'PACKING_STATIONS'     :  10,          # N
         # Debug Variables
          'KENNY_LOGGINS'        :  False,        # [True, False*]
-         'SAVE_DATA'            :  False,       # [True*, False]
+         'SAVE_DATA'            :  True,       # [True*, False]
          'FINAL_ECHO'           :  True,        # [True*, False]
          'ORDER_TEST'           :  False,        # [True, False*]
          #'ORDER_FILE'           : #'strategies/final-project-2022m4_orders.csv' ## moreeee compute :(

@@ -185,7 +185,7 @@ class Kernel():
         # add clock time to the set
         self.event_times.add(event_time)
         
-        self.addLogs("Clock {} :: Scheduling event - {} at t={}",[self.clock, event_name, event_time])
+        # self.addLogs("Clock {} :: Scheduling event - {} at t={}",[self.clock, event_name, event_time])
         return event_time, event_name
 
     def __checkEventTime__(self, event_time):
@@ -232,7 +232,7 @@ class Kernel():
         echo_out = self.DATA_STORAGE.get_KPIs()
         for this_kpi in echo_out:
             print(this_kpi,' : ',str(echo_out[this_kpi]))
-        self.addLogs(echo_out, [])
+        # self.addLogs(echo_out, [])
 
     def get_day_and_shift(self, timestamp):
         """

@@ -35,25 +35,44 @@ class Pooling(BusinessProcess):
         param file_path: string of file path of queue 
         return: None
         """
+
+        timestamp = 0
         if file_path == "_TEST_":
+            # HARDCODE DELIVERIES
             for q in [32400, 378000, 723600, 1069200, 1414800]:
-             self.delivery_queue[q] = {
-                'P1': 400,
-                'P2': 500,
-                'P3': 600,
-                'P4': 700
-            }
-            kernel.addEvent(q, "DeliveryIn")
+                # kernel.addEvent(new_time, "DeliveryIn") ----- OLD CODE
+                # ADD to Kernel EVENT_QUEUE, get the deconflicted time
+                new_time, _ = kernel.addEvent(q, "DeliveryIn")
+
+                self.delivery_queue[new_time] = {
+                    'P1': 400,
+                    'P2': 500,
+                    'P3': 600,
+                    'P4': 700
+                }
+
         else:
+            # DYNAMIC FILE DELIVERIES
             delivery_df = pd.read_csv(file_path)
             for index, row in delivery_df.iterrows():
-                self.delivery_queue[row['Timestamp']] = {
+                # self.delivery_queue[row['Timestamp']] = {
+                #     'P1': row['P1'],
+                #     'P2': row['P2'],
+                #     'P3': row['P3'],
+                #     'P4': row['P3']
+                # }
+                # kernel.addEvent(row['Timestamp'], "DeliveryIn") ----- OLD CODE
+
+                # ADD to Kernel EVENT_QUEUE, get the deconflicted time
+                new_time, _ = kernel.addEvent(row['Timestamp'], "DeliveryIn")
+
+                self.delivery_queue[new_time] = {
                     'P1': row['P1'],
                     'P2': row['P2'],
                     'P3': row['P3'],
                     'P4': row['P3']
                 }
-                kernel.addEvent(row['Timestamp'], "DeliveryIn")
+                
         return self.delivery_queue
  
     def get_ship_weight(self, shipment):
@@ -67,11 +86,18 @@ class Pooling(BusinessProcess):
     def __getDelivery__(self, kernel=None):
         shipment = self.delivery_queue[kernel.clock]
 
+        try:
+            del self.delivery_queue[kernel.clock]
+        except KeyError:
+            pass
+        # print(self.delivery_queue.keys())
+
         # TODO Check weights
         curr_parking_weight = kernel.DATA_STORAGE.get_parking_weight()
         ship_weight = self.get_ship_weight(shipment)
 
-        surplus = cs.PARKING_LIMIT - curr_parking_weight + ship_weight
+        surplus = (curr_parking_weight + ship_weight) - cs.PARKING_LIMIT
+        # print("DELIVERY {} PROCESS: {} {}".format(kernel.clock, ship_weight, surplus))
         if surplus <= 0:
             # Add shipment to parking
             kernel.DATA_STORAGE.add_parking_shipment(shipment)
@@ -93,6 +119,8 @@ class Pooling(BusinessProcess):
                 kernel.DATA_STORAGE.add_cost('delivery', cs.DELIVERY_COST_DAILY)
             elif kernel.options['DELIVERY_SCHEDULE'] == "WEEKLY":
                 kernel.DATA_STORAGE.add_cost('delivery', cs.DELIVERY_COST_WEEKLY)
+
+        # print("DELIVERY {} PROCESSED: {} {}".format(kernel.clock, ship_weight, surplus))
                         
         # Poke the stowage workers in case they are being lazy
         kernel.addEvent(kernel.clock + 1e-1, "PokeWorkersStorage")

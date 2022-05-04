@@ -1,1 +1,0 @@
-rm /root/work/logs/*.log

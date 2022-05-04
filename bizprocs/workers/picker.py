@@ -88,14 +88,14 @@ class PickageWorker(Worker):
             self.__travelStorage__(kernel)
         else:
             # have facility kill the order and log the loss
-            print("{} - {}: Got an order".format(kernel.clock,self.name))
-            print("creation time: ",self.order._creation_time)
-            print("destruction time: ",self.order._destruction_time)
-            print("TOO LATE: ",self.order._TOO_LATE)
-            print("content: ",self.order._content)
-            print("number items: ",self.order.n_items)
-            print("profit: ",self.order.order_profit)
-            print("penalty: ",self.order.order_penalty)
+            # print("{} - {}: Got an order".format(kernel.clock,self.name))
+            # print("creation time: ",self.order._creation_time)
+            # print("destruction time: ",self.order._destruction_time)
+            # print("TOO LATE: ",self.order._TOO_LATE)
+            # print("content: ",self.order._content)
+            # print("number items: ",self.order.n_items)
+            # print("profit: ",self.order.order_profit)
+            # print("penalty: ",self.order.order_penalty)
 
             self.facility.killOrder(kernel, self.order)
 

@@ -109,7 +109,11 @@ class Picking(BusinessProcess):
         return has_margin
         
     def killOrder(self, kernel=None, dead_order=None):
-        pass
+        # log the lost sales
+        kernel.DATA_STORAGE.costs['lost_sales'] += dead_order.getPenalty()
+
+        # and leave
+        return
 
     def setAssignment(self, worker, order):
         self._assignments[worker] = order

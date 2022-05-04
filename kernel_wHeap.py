@@ -12,6 +12,7 @@ from datetime import datetime
 
 import heapq as MinHeap
 import queue as MuhQueue
+import sys
 
 
 class Kernel():
@@ -20,7 +21,10 @@ class Kernel():
                        runtime : int,
                        event_dictionary : dict,
                        options : dict):
-                       
+
+        # we abuse recursion in this simulation               
+        sys.setrecursionlimit(42069)
+
         self.clock = 0
 
         # save the options input

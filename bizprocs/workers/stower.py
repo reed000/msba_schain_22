@@ -15,7 +15,7 @@ class StowageWorker(Worker):
         super().__init__(facility, kernel, num)
 
         # define the default first task
-        self.__startUpTask__ = self.__idling__
+        self.__startUpTask__ = self.__checkParking__
 
         # what the worker is carrying
         self.hands = {}
@@ -95,7 +95,7 @@ class StowageWorker(Worker):
 
         # Case 1: 
         # ono.wav, the parking area is empty
-        if kernel.DATA_STORAGE.parking[max_weight_prod]==0:
+        if kernel.DATA_STORAGE.parking[max_weight_prod]<=0:
             load_out = -999
 
         # Case 2:

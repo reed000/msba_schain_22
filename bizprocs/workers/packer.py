@@ -15,7 +15,7 @@ class PackageWorker(Worker):
         super().__init__(facility, kernel, num)
 
         # define the default first task
-        self.__startUpTask__ = self.__idling__
+        self.__startUpTask__ = self.__occupyFirstStation__
 
         # dictionary with contents of the order to be fulfilled
         self.order = None
@@ -87,7 +87,7 @@ class PackageWorker(Worker):
         self.order = None
 
         # IN FOUR MINUTES I TURN THIS INTO FORENSICS IN A FOREIGN CAR
-        self.__packOrder__(kernel)
+        self.__addWorkerEvent__(kernel, kernel.clock+1e-3, self.name+"_PackOrder")
 
 
     def __terminate__(self, kernel=None):

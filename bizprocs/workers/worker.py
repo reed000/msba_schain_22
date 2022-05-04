@@ -123,6 +123,10 @@ class Worker(BusinessProcess):
         kernel.DATA_STORAGE.costs['labor'] += paycheck
         # print( "{} paid ${}".format(self.name, paycheck))
 
+        # do one last poke to log the accumulated time.
+        if self.idle:
+            self.poke(kernel)
+
         # also keep track of working time and idle time in the log
         kernel.DATA_STORAGE.work_time[self.facility.name] += labor_time
         kernel.DATA_STORAGE.idle_time[self.facility.name] += self.idle_time

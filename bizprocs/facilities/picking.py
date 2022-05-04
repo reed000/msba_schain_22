@@ -22,7 +22,7 @@ class Picking(BusinessProcess):
 
     def startup(self, kernel=None):
         # set number of workers
-        self.n_workers = 3 #kernel.options['STOWAGE_WORKERS']  
+        self.n_workers = kernel.options['PICKING_WORKERS']  
 
         # allocate all shift changes
         self.__scheduleShiftChanges__(kernel)

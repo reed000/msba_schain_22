@@ -51,6 +51,14 @@ class StowageWorker(Worker):
         # add self to the kernel's registers
         self.__clockIn__(facility, kernel)
 
+
+    def poke(self, kernel=None):
+        # call base worker poke
+        super().poke(kernel)
+
+        # then check that parking
+        self.__checkParking__(kernel)
+
         
     def __checkParking__(self, kernel=None):
         max_weight_prod = kernel.DATA_STORAGE.get_max_weight_parking()
@@ -61,9 +69,8 @@ class StowageWorker(Worker):
 
         # if this is the load then there is nothing in parking
         if load == -999:
-            warnings.warn("Stowage Empty at time {}".format(kernel.clock))
-            
-            # TODO: Handle wait / or Idle - recheck later?
+            # set to idle and get out of there
+            self.__idling__(kernel)
             return
 
         # grab it with your hands

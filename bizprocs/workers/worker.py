@@ -24,6 +24,11 @@ class Worker(BusinessProcess):
         # guard value preventing new tasking if it's time to clock out
         self.last_task = False
 
+        # variables for monitoring idleness
+        self.idle = False
+        self.idle_time = 0.0 # accumulated clock time of idleness
+        self.idle_start = 0.0 # clock time of when the idleness started last
+
         # populate methods
         self.__addEvent__(self.name+"_Terminate",self.__terminate__)        
 
@@ -94,6 +99,21 @@ class Worker(BusinessProcess):
         # Pay the Worker for the good deeds
         self.__pay_worker__(kernel)
 
+
+    # this method should be mostly invoked using super()
+    def poke(self, kernel=None):
+        self.idle = False
+        self.idle_time += (kernel.clock - self.idle_start)
+        
+
+
+    def __idling__(self, kernel=None):
+        # reset the present task
+        self.present_task = {}
+        self.idle = True
+        self.idle_start = kernel.clock
+
+
     def __pay_worker__(self, kernel=None):
         """
         you may use seconds as the minimal unit calculation for continuous payment
@@ -103,6 +123,10 @@ class Worker(BusinessProcess):
 
         kernel.DATA_STORAGE.costs['labor'] += paycheck
         # print( "{} paid ${}".format(self.name, paycheck))
+
+        # also keep track of working time and idle time in the log
+        kernel.DATA_STORAGE.work_time[self.facility.name] += labor_time
+        kernel.DATA_STORAGE.idle_time[self.facility.name] += self.idle_time
         
     def report(self):
         # print metrics

@@ -36,6 +36,23 @@ class DataStore():
             'P4':0
         }
 
+
+        # dictionary to store working time (in seconds)
+        self.work_time = {
+            "Packing" : 0.0,
+            "Picking" : 0.0,
+            "Storage" : 0.0
+        }
+
+
+        # dictionary to store idle time (in seconds)
+        self.idle_time = {
+            "Packing" : 0.0,
+            "Picking" : 0.0,
+            "Storage" : 0.0
+        }
+
+
         # TODO Add total IDLE time 
         self.costs = {
                 'labor': 0,
@@ -55,14 +72,18 @@ class DataStore():
     
     def get_KPIs(self):
         kpi = {
-            "\n                   Revenue": self.revenue,
-            "\n        (Delivery Expense)": self.costs['delivery'],
-            "\n      {Lost Sales Penalty)": self.costs['lost_sales'],
-            "\n           (Labor Expense)": self.costs['labor'],
-            "\n   (Facilities Fixed Cost)": self.costs['facilities_fxd'],
-            "\n (Packing Station Expense)": self.costs['packing_stn'],
-            "\n  (Inventory Holding Cost)": self.costs['inventory_hldg'],
-            "\n------------TOTAL PROFIT =": self.revenue - self.get_total_cost()
+            "                   Revenue": self.revenue,
+            "        (Delivery Expense)": self.costs['delivery'],
+            "      {Lost Sales Penalty)": self.costs['lost_sales'],
+            "           (Labor Expense)": self.costs['labor'],
+            "   (Facilities Fixed Cost)": self.costs['facilities_fxd'],
+            " (Packing Station Expense)": self.costs['packing_stn'],
+            "  (Inventory Holding Cost)": self.costs['inventory_hldg'],
+            "------------TOTAL PROFIT =": self.revenue - self.get_total_cost(),
+            "--------------------------": "--------------------------",
+            "-----Utilization Storage =": "{:.2f} %".format(100.*(self.work_time["Storage"] - self.idle_time["Storage"]) / self.work_time["Storage"]),
+            "-----Utilization Picking =": "{:.2f} %".format(100.*(self.work_time["Picking"] - self.idle_time["Picking"]) / self.work_time["Picking"]),
+            "-----Utilization Packing =": "{:.2f} %".format(100.*(self.work_time["Packing"] - self.idle_time["Packing"]) / self.work_time["Packing"])
         }
         return kpi
 
@@ -195,5 +216,11 @@ class DataStore():
             'costs_facilities_fxd'  : self.costs['facilities_fxd'],
             'costs_packing_stn'     : self.costs['packing_stn'],
             'costs_inventory_hldg'  : self.costs['inventory_hldg'],
-            'revenue'               : self.revenue
+            'revenue'               : self.revenue,
+            'time_worked_storage'   : self.work_time['Packing'],
+            'time_worked_picking'   : self.work_time['Picking'],
+            'time_worked_packing'   : self.work_time['Storage'],
+            'time_idled_storage'    : self.idle_time['Packing'],
+            'time_idled_picking'    : self.idle_time['Picking'],
+            'time_idled_packing'    : self.idle_time['Storage'],
         }

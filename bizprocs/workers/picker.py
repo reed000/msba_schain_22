@@ -57,15 +57,13 @@ class PickageWorker(Worker):
         # add self to the kernel's registers
         self.__clockIn__(facility, kernel)
 
+
     def poke(self, kernel=None):
-        self.idle = False   
+        # call base worker poke
+        super().poke(kernel)
+
+        # then request that order
         self.__requestOrder__(kernel)
-
-
-    def __idling__(self, kernel=None):
-        # reset the present task
-        self.present_task = {}
-        self.idle = True
 
     
     def __requestOrder__(self, kernel=None):

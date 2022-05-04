@@ -21,7 +21,7 @@ class Storage(BusinessProcess):
 
     def startup(self, kernel=None):
         # set number of workers
-        self.n_workers = 3 #kernel.options['STOWAGE_WORKERS']  
+        self.n_workers = kernel.options['STORAGE_WORKERS']  
 
         # allocate all shift changes
         self.__scheduleShiftChanges__(kernel)
@@ -55,12 +55,10 @@ class Storage(BusinessProcess):
 
 
     def __pokeWorkers__(self, kernel=None):
-        # this method will get workers to move if idle
-        pass
-        # for working_man in self.workers:
-        #     # make them do something if idle
-        #     if self.workers[working_man].idle:
-        #         self.workers[working_man].poke(kernel)
+        for working_man in self.workers:
+            # make them do something if idle
+            if self.workers[working_man].idle:
+                self.workers[working_man].poke(kernel)
         
 
 """

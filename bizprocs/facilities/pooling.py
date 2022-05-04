@@ -94,5 +94,5 @@ class Pooling(BusinessProcess):
             elif kernel.options['DELIVERY_SCHEDULE'] == "WEEKLY":
                 kernel.DATA_STORAGE.add_cost('delivery', cs.DELIVERY_COST_WEEKLY)
                         
-        # TODO: Poke next shift workers event
-        # self.__addEvent__("PokeWorkersStorage",Storage.__pokeWorkers__)
+        # Poke the stowage workers in case they are being lazy
+        kernel.addEvent(kernel.clock + 1e-1, "PokeWorkersStorage")

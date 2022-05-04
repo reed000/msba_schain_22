@@ -29,7 +29,7 @@ class Packing(BusinessProcess):
 
     def startup(self, kernel=None):
         # set number of workers
-        self.n_workers = 3 #kernel.options['PACKING_WORKERS']
+        self.n_workers = kernel.options['PACKING_WORKERS']
 
         # set number of stations
         self.n_stations = kernel.options['PACKING_STATIONS']

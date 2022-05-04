@@ -40,7 +40,8 @@ class PackageWorker(Worker):
         self.__clockIn__(facility, kernel)
 
     def poke(self, kernel=None):
-        self.idle = False   
+        # call base worker poke for logging
+        super().poke(kernel)
 
         # DON'T JUST STAND THERE ROOKIE GET TO A PACKING STATION
         if self.station is None:
@@ -49,11 +50,6 @@ class PackageWorker(Worker):
         # DON'T JUST STAND THERE SLACKER START PACKING THAT ORDER
         elif self.station.getNumOrders() > 0:
             self.__packOrder__(kernel)
-
-    def __idling__(self, kernel=None):
-        # reset the present task
-        self.present_task = {}
-        self.idle = True
 
     def __occupyFirstStation__(self, kernel):
         goto_index = self.facility.getFirstUnoccupiedStation()

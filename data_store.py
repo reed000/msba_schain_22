@@ -81,6 +81,7 @@ class DataStore():
             "  (Inventory Holding Cost)": self.costs['inventory_hldg'],
             "------------TOTAL PROFIT =": self.revenue - self.get_total_cost(),
             "--------------------------": "--------------------------",
+            "    Total Parking Weight =": "{:.2f} %".format(self.get_parking_weight()),
             "-----Utilization Storage =": "{:.2f} %".format(100.*(self.work_time["Storage"] - self.idle_time["Storage"]) / self.work_time["Storage"]),
             "-----Utilization Picking =": "{:.2f} %".format(100.*(self.work_time["Picking"] - self.idle_time["Picking"]) / self.work_time["Picking"]),
             "-----Utilization Packing =": "{:.2f} %".format(100.*(self.work_time["Packing"] - self.idle_time["Packing"]) / self.work_time["Packing"])

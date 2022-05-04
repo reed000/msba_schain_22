@@ -100,7 +100,9 @@ class PickageWorker(Worker):
             self.facility.killOrder(kernel, self.order)
 
             # request another one
-            self.__requestOrder__(kernel)        
+            eta = kernel.clock + 1e-3
+            self.__addWorkerEvent__(kernel, eta, self.name+"_RequestOrder")
+            # self.__requestOrder__(kernel)        
 
 
     def __travelStorage__(self, kernel=None):

@@ -52,7 +52,7 @@ def PRIMARY_LOOP():
     }
 
     event_dictionary = {
-        'DeliveryIn' : ('parking','getDelivery'),
+        'DeliveryIn' : ('parking','DeliveryIn'),
         'OrderUp': ('orders', 'OrderUp'),
         'ShiftChangeStorage' : ('stowage', 'ShiftChangeStorage'),
         'PokeWorkersStorage' : ('stowage', 'PokeWorkersStorage'),
@@ -96,7 +96,7 @@ def PRIMARY_LOOP():
     }
     options_dict = {
         # Optimize Variables
-         'DELIVERY_SCHEDULE'    : 'WEEKLY',      #['DAILY', 'WEEKLY'] _TEST_
+         'DELIVERY_SCHEDULE'    : 'DAILY',      #['DAILY', 'WEEKLY'] _TEST_
          'STORAGE_MECHANIC'     : 'DESIGNATED', #['DESIGNATED', 'RANDOM']
          'STORAGE_WORKERS'      :  50,         # stowing_shift
          'PICKING_MECHANIC'     : 'DESIGNATED', #['DESIGNATED', 'RANDOM']

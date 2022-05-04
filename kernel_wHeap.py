@@ -74,12 +74,12 @@ class Kernel():
 
         # TODO ! ! ! W A R N I N G ! ! ! Set parking 0
         # HARD CODE this for TESTING
-        self.DATA_STORAGE.parking = {
-                'P1':100,
-                'P2':100,
-                'P3':100,
-                'P4':100
-            }
+        # self.DATA_STORAGE.parking = {
+        #         'P1':100,
+        #         'P2':100,
+        #         'P3':100,
+        #         'P4':100
+        #     }
         # ! ! ! W A R N I N G ! ! ! 
 
         # DEFAULT STORAGE

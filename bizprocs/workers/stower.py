@@ -76,12 +76,15 @@ class StowageWorker(Worker):
         # grab it with your hands
         self.hands[max_weight_prod] = math.floor(load / self.weights[max_weight_prod])
 
+        # log which product we are hefting
+        self.max_weight_prod = max_weight_prod
+
         # decrement it from the parking area
         kernel.DATA_STORAGE.parking[max_weight_prod] -= \
                             math.floor(load / self.weights[max_weight_prod])
 
         # figure out where to go
-        self.__setDestination__(max_weight_prod)
+        self.__setDestination__(kernel, "INITIAL")
 
         eta = kernel.clock + cs.STOWER_PICKUP_TIME
         self.__addWorkerEvent__(kernel, eta, self.name+"_TravelStorage")
@@ -102,71 +105,70 @@ class StowageWorker(Worker):
             load_out = min(kernel.DATA_STORAGE.parking[max_weight_prod], \
                             self.max_capacity)   
 
-         # ! ! ! ! ! ! ! ! ! ! !
-         # WARNING: DEPRECATED !
-         # ! ! ! ! ! ! ! ! ! ! !
-#        # Case 1: 
-#        # ono.wav, the parking area is empty
-#        if len(max_weight_prod) > 1 and \
-#            kernel.DATA_STORAGE.parking[max_weight_prod[0]]==0:
-#            load_out = -999
-#
-#        # Case 2:
-#        # redundantly max weight products in parking area
-#        # select randomly
-#        elif len(max_weight_prod) > 1 and \
-#            kernel.DATA_STORAGE.parking[max_weight_prod[0]]>0:
-#            random_select = np.random.randint(0,len(max_weight_prod)-1)
-#            max_weight_prod = max_weight_prod[random_select]
-#            load_out = min(kernel.DATA_STORAGE.parking[max_weight_prod], \
-#                            self.max_capacity) 
-#
-#        # Case 3:
-#        # redundantly max weight products in parking area
-#        # select randomly
-#        else:
-#            max_weight_prod = max_weight_prod[0]
-#            load_out = min(kernel.DATA_STORAGE.parking[max_weight_prod], \
-#                            self.max_capacity)   
-#
         return load_out, max_weight_prod
 
 
-    def __setDestination__(self, max_weight_prod=None):
-        # where random or deterministic logic is set
-        if self.stow_strategy == "DESIGNATED" and self.destination == "Parking":
-            dest_dict = {
-                'P1' : 'Area1',
-                'P2' : 'Area2',
-                'P3' : 'Area3',
-                'P4' : 'Area4'
+# # # # # # # # # # # # # # # # # # # # # # # # # # # # #
+# # # W A R N I N G ! ! !   MAJOR REFACTORING ! ! ! # # #
+# # # # # # # # # # # # # # # # # # # # # # # # # # # # #
+
+    def __setDestination__(self, kernel=None, xfer_type=None):
+        # sets logical flow
+        strategy_dict = {
+            "DESIGNATED" : {
+                "INITIAL"  : self.__destLogicDesignatedInitial__,
+                "TRANSFER" : self.__destLogicDesignatedTransfer__,
+            },
+            "RANDOM" : {
+                "INITIAL"  : self.__destLogicRandomInitial__,
+                "TRANSFER" : self.__destLogicRandomTransfer__,
+            }
+        }
+
+        # execute the appropriate destination determination function
+        strategy_dict[self.stow_strategy][xfer_type](kernel)
+
+    def __destLogicDesignatedInitial__(self, kernel=None):
+        '''
+        The designated storage policy will designate each of the inventory
+        storage area to carry only one type of product.
+        '''
+        # head to the first product warehouse in the order
+        dest_dict = {
+                "P1" : 'Area1',
+                "P2" : 'Area2',
+                "P3" : 'Area3',
+                "P4" : 'Area4',
             }
 
-            self.destination = dest_dict[max_weight_prod]
-        elif self.stow_strategy == "DESIGNATED" and self.destination != "Parking":
-            self.destination = "Parking"
+        self.destination = dest_dict[self.max_weight_prod]
 
-        elif self.stow_strategy == "RANDOM":
-            dest_dict = {
-                'Parking' : 'Area1',
-                'Area1'   : 'Area2',
-                'Area2'   : 'Area3',
-                'Area3'   : 'Area4',
-                'Area4'   : 'Parking',
-            }
+    def __destLogicDesignatedTransfer__(self, kernel=None):
+        self.destination = "Parking"
 
-            old_dest = self.destination
-            self.destination = dest_dict[old_dest]
+    def __destLogicRandomInitial__(self, kernel=None):
+        '''
+        The random storage policy will make the stower travel across all four
+        storage area and store ¼ of the total units across all four storage areas.
+        The stower will travel the storage areas in the order of 1 à 2 à 3 à 4.
+        '''        
+        self.destination = 'Area1'
 
-        else:
-            warnings.warn("Worker {} got bogus stow strategy.".format(self.name))
+    def __destLogicRandomTransfer__(self, kernel=None):
+        from_to_dict = {
+            'Area1' : 'Area2',
+            'Area2' : 'Area3',
+            'Area3' : 'Area4',
+            'Area4' : 'Parking',
+        }
+
+        area_now = self.destination
+        self.destination = from_to_dict[area_now]
 
 
-    # will need to be upgraded with multiple storage areas
-    def __travelStorage__(self, kernel=None):
-        eta = kernel.clock + cs.STOWER_TO_STORAGE_TIME
-        self.__addWorkerEvent__(kernel, eta, self.name+"_StowProduct")
-
+# # # # # # # # # # # # # # # # # # # # # # # # # # # # #
+# # # W A R N I N G ! ! !   MAJOR REFACTORING ! ! ! # # #
+# # # # # # # # # # # # # # # # # # # # # # # # # # # # #
 
     def __stowProduct__(self, kernel=None):
         # set the self.dropoff variable
@@ -184,22 +186,17 @@ class StowageWorker(Worker):
             self.hands[item] -= self.dropoff[item]        
 
         # figure out what to do next
-        self.__setDestination__(kernel)
+        self.__setDestination__(kernel, "TRANSFER")
 
-        if self.destination == "Parking":
-            eta = kernel.clock + cs.STOWER_TO_STORAGE_TIME
-            next_event = self.name+"_CheckParking"
-        elif self.destination == "Area1":
-            warnings.warn("Set destination to Area1 despite already stowing...")
-            eta = kernel.clock + 1e-1
-            next_event = self.name+"_TravelAdjacent"
-        elif self.destination == "Area2":
-            eta , next_event = kernel.clock + 1e-1, self.name+"_TravelAdjacent"
-        elif self.destination == "Area3":
-            eta, next_event = kernel.clock + 1e-1, self.name+"_TravelAdjacent"
-        elif self.destination == "Area4":
-            eta = kernel.clock + 1e-1
-            next_event = self.name+"_TravelAdjacent"
+        action_dict = {
+            "Parking"   : (kernel.clock + cs.STOWER_TO_STORAGE_TIME, self.name+"_TravelParking"),
+            "Area1"     : (kernel.clock + 1e-3, self.name+"_TravelAdjacent"),
+            "Area2"     : (kernel.clock + 1e-3, self.name+"_TravelAdjacent"),
+            "Area3"     : (kernel.clock + 1e-3, self.name+"_TravelAdjacent"),
+            "Area4"     : (kernel.clock + 1e-3, self.name+"_TravelAdjacent"),
+        }
+
+        eta, next_event = action_dict[self.destination]
 
         self.__addWorkerEvent__(kernel, eta, next_event)
 
@@ -212,18 +209,31 @@ class StowageWorker(Worker):
                 self.dropoff[item] = floor(self.hands[item]/4.0)
 
 
-    def __evaluateStorage__(self, kernel=None):
-        pass
 
+    def __travelStorage__(self, kernel=None):
+        eta = kernel.clock + cs.STOWER_TO_STORAGE_TIME
+        self.__addWorkerEvent__(kernel, eta, self.name+"_StowProduct")
+
+    def __travelParking__(self, kernel=None):
+        self.__resetMe__()
+        
+        eta = kernel.clock + cs.STOWER_TO_STORAGE_TIME
+        self.__addWorkerEvent__(kernel, eta, self.name+"_CheckParking")
 
     def __travelAdjacent__(self, kernel=None):
         eta = kernel.clock + cs.STOWER_TRAVEL_TIME
         self.__addWorkerEvent__(kernel, eta, self.name+"_StowProduct")
 
 
-    def __travelParking__(self, kernel=None):
-        eta = kernel.clock + cs.STOWER_TO_STORAGE_TIME
-        self.__addWorkerEvent__(kernel, eta, self.name+"_CheckParking")
+    def __resetMe__(self):
+        # called during a delivery,
+        # resets the attributes used to track stuff
+        # what the worker is carrying
+        # what the worker is carrying
+        self.hands = {}
+
+        # next dropoff
+        self.dropoff = {}
 
 
     def __smokeCigs__(self, kernel=None):

@@ -16,7 +16,7 @@ class Pooling(BusinessProcess):
 
     def __init__(self):
         super().__init__(name="Pooling")
-        self.__addEvent__("getDelivery",self.__getDelivery__)
+        self.__addEvent__("DeliveryIn",self.__getDelivery__)
         self.delivery_queue = {}
 
     def startup(self, kernel=None):

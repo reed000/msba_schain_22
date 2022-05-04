@@ -16,9 +16,9 @@ from bizprocs.facilities.picking import Picking
 from bizprocs.facilities.packing import Packing
 from bizprocs.facilities.ordering import Orders
 
-
-SET_RUNTIME = 3600*24*30*2 # 2 weeks
-# 60*525600 # minutes = 1 year
+SET_RUNTIME = 3600*24*5 # 5 days
+# SET_RUNTIME = 3600*24*30*2 # 2 months
+# SET_RUNTIME = 60*525600 # minutes = 1 year
 
 def find_delivery_file():
     """
@@ -55,6 +55,7 @@ def PRIMARY_LOOP():
         'DeliveryIn' : ('parking','getDelivery'),
         'OrderUp': ('orders', 'OrderUp'),
         'ShiftChangeStorage' : ('stowage', 'ShiftChangeStorage'),
+        'PokeWorkersStorage' : ('stowage', 'PokeWorkersStorage'),
         'ShiftChangePicking' : ('picking', 'ShiftChangePicking'),
         'PokeWorkersPicking' : ('picking', 'PokeWorkersPicking'),
         'ShiftChangePacking' : ('packing', 'ShiftChangePacking'),
@@ -97,11 +98,11 @@ def PRIMARY_LOOP():
         # Optimize Variables
          'DELIVERY_SCHEDULE'    : 'DAILY',      #['DAILY', 'WEEKLY'] _TEST_
          'STORAGE_MECHANIC'     : 'DESIGNATED', #['DESIGNATED', 'RANDOM']
-         'STORAGE_WORKERS'      :  20,           # stowing_shift
+         'STORAGE_WORKERS'      :  10,           # stowing_shift
          'PICKING_MECHANIC'     : 'DESIGNATED', #['DESIGNATED', 'RANDOM']
-         'PICKING_WORKERS'      :  100,           # picking_shift
-         'PACKING_WORKERS'      :  20,           # packing_shift
-         'PACKING_STATIONS'     :  20,           # N
+         'PICKING_WORKERS'      :  10,           # picking_shift
+         'PACKING_WORKERS'      :  10,           # packing_shift
+         'PACKING_STATIONS'     :  10,           # N
         # Debug Variables
          'KENNY_LOGGINS'        :  False,        # [True, False*]
          'SAVE_DATA'            :  False,       # [True*, False]

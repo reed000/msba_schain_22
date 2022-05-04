@@ -226,7 +226,8 @@ class Kernel():
 
     def finalEcho(self):
         echo_out = self.DATA_STORAGE.get_KPIs()
-        print(echo_out)
+        for this_kpi in echo_out:
+            print(this_kpi,' : ',str(echo_out[this_kpi]))
         self.addLogs(echo_out, [])
 
     def get_day_and_shift(self, timestamp):

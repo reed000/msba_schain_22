@@ -226,7 +226,7 @@ class Kernel():
             orient='index'
         )
 
-        df.to_csv("output/simout_{}.csv".format(datetime.now().strftime("%m_%d-%H:%M")))
+        df.to_csv("output/simout_{}.csv".format(datetime.now().strftime("%m_%d-%H_%M")))
 
     def finalEcho(self):
         echo_out = self.DATA_STORAGE.get_KPIs()

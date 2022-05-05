@@ -62,13 +62,14 @@ class StowageWorker(Worker):
         
     def __checkParking__(self, kernel=None):
         # hold if there is nothing in the parking area:
-        nothing = kernel.DATA_STORAGE.parking['P1'] == 0 and \
-                    kernel.DATA_STORAGE.parking['P2'] == 0 and \
-                    kernel.DATA_STORAGE.parking['P3'] == 0 and \
-                    kernel.DATA_STORAGE.parking['P4'] == 0
+        nothing = kernel.DATA_STORAGE.parking['P1'] <= 0 and \
+                    kernel.DATA_STORAGE.parking['P2'] <= 0 and \
+                    kernel.DATA_STORAGE.parking['P3'] <= 0 and \
+                    kernel.DATA_STORAGE.parking['P4'] <= 0
         
         if nothing:
             self.__idling__(kernel)
+            return
 
         # otherwise, get the max weight thing
         max_weight_prod = kernel.DATA_STORAGE.get_max_weight_parking()
@@ -106,7 +107,7 @@ class StowageWorker(Worker):
         # redundantly max weight products in parking area
         # select randomly
         else:
-            load_out = min(kernel.DATA_STORAGE.parking[max_weight_prod], \
+            load_out = min(kernel.DATA_STORAGE.parking[max_weight_prod] * self.weights[max_weight_prod], \
                             self.max_capacity)   
 
         return load_out, max_weight_prod

@@ -239,7 +239,7 @@ class PickageWorker(Worker):
         kernel.DATA_STORAGE.throughputs['value_picking'] += self.order.getProfit()
 
         lbs_index = self.facility.my_packing.getLeastBurdenedStation()
-        lbs = self.facility.my_packing.getStationByIndex(lbs_index)
+        lbs = self.facility.my_packing.getStationByIndex(lbs_index)        
         lbs.addOrder(self.order)
         
         self.__resetOrderCounters__()

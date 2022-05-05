@@ -15,7 +15,7 @@ class PackageWorker(Worker):
         super().__init__(facility, kernel, num)
 
         # define the default first task
-        self.__startUpTask__ = self.__occupyFirstStation__
+        self.__startUpTask__ = self.__idling__
 
         # dictionary with contents of the order to be fulfilled
         self.order = None
@@ -43,17 +43,21 @@ class PackageWorker(Worker):
         # call base worker poke for logging
         super().poke(kernel)
 
+        print(self.present_task)
+
         # DON'T JUST STAND THERE ROOKIE GET TO A PACKING STATION
-        if self.station is None:
+        if self.station is None:            
             self.__occupyFirstStation__(kernel)
 
         # DON'T JUST STAND THERE SLACKER START PACKING THAT ORDER
-        elif self.station.getNumOrders() > 0:
+        elif self.station.getNumOrders() > 0:   
             self.__packOrder__(kernel)
+        else:
+            self.__idling__()
 
     def __occupyFirstStation__(self, kernel):
         goto_index = self.facility.getFirstUnoccupiedStation()
-
+        
         # return of None means no stations are available. Standby.
         if goto_index is None:
             self.__idling__(kernel)
@@ -63,10 +67,11 @@ class PackageWorker(Worker):
         self.station_slot = goto_index
         self.facility.setStationOccupied(self, goto_index)
         self.station = self.facility.getStationByIndex(goto_index)
+        
 
     def __packOrder__(self, kernel=None):
         # it takes 30 seconds + 10 seconds per item to pack
-        self.order = self.station.getNextOrder()
+        self.order = self.station.getNextOrder()        
 
         # nothing on the stack, time to idle
         if self.order is None:
@@ -90,6 +95,7 @@ class PackageWorker(Worker):
 
         # IN FOUR MINUTES I TURN THIS INTO FORENSICS IN A FOREIGN CAR
         self.__addWorkerEvent__(kernel, kernel.clock+1e-3, self.name+"_PackOrder")
+        
 
 
     def __terminate__(self, kernel=None):

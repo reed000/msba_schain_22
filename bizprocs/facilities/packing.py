@@ -138,7 +138,7 @@ class Packing(BusinessProcess):
                 kernel.DATA_STORAGE.throughputs['value_packing'] / kernel.clock * 3600 # per hour
 
 
-    def __pokeWorkers__(self, kernel=None):
+    def __pokeWorkers__(self, kernel=None):        
         for working_man in self.workers:
             # make them do something if idle
             if self.workers[working_man].idle:

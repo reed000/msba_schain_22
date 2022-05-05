@@ -182,6 +182,10 @@ class StowageWorker(Worker):
         else:
             self.__randomStorage__(self, kernel)
 
+        dropoff_time_sink = 0
+        for item in self.dropoff:
+            dropoff_time_sink += cs.STOWER_STOW_TIME_PER_UNIT * self.dropoff[item]
+
         # add to the appropriate storage area
         for item in self.dropoff:
             kernel.DATA_STORAGE.storage[self.destination][item] += self.dropoff[item]
@@ -202,11 +206,11 @@ class StowageWorker(Worker):
         self.__setDestination__(kernel, "TRANSFER")
 
         action_dict = {
-            "Parking"   : (kernel.clock + cs.STOWER_TO_STORAGE_TIME, self.name+"_TravelParking"),
-            "Area1"     : (kernel.clock + 1e-3, self.name+"_TravelAdjacent"),
-            "Area2"     : (kernel.clock + 1e-3, self.name+"_TravelAdjacent"),
-            "Area3"     : (kernel.clock + 1e-3, self.name+"_TravelAdjacent"),
-            "Area4"     : (kernel.clock + 1e-3, self.name+"_TravelAdjacent"),
+            "Parking"   : (kernel.clock + cs.STOWER_TO_STORAGE_TIME + dropoff_time_sink, self.name+"_TravelParking"),
+            "Area1"     : (kernel.clock + dropoff_time_sink + 1e-3, self.name+"_TravelAdjacent"),
+            "Area2"     : (kernel.clock + dropoff_time_sink + 1e-3, self.name+"_TravelAdjacent"),
+            "Area3"     : (kernel.clock + dropoff_time_sink + 1e-3, self.name+"_TravelAdjacent"),
+            "Area4"     : (kernel.clock + dropoff_time_sink + 1e-3, self.name+"_TravelAdjacent"),
         }
 
         eta, next_event = action_dict[self.destination]

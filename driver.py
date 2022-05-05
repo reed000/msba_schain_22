@@ -68,6 +68,15 @@ def PRIMARY_LOOP():
     # find 100 order of workers
     # loop 80 - 120 workers for each of the 21 time slots per worker
     stowing_shift = {
+        "SUN": [1, 1, 1],
+        "MON": [1, 1, 1],
+        "TUE": [1, 1, 1],
+        "WED": [1, 1, 1],
+        "THU": [1, 1, 1],
+        "FRI": [1, 1, 1],
+        "SAT": [1, 1, 1]
+    }
+    picking_shift = {
         "SUN": [10, 10, 10],
         "MON": [10, 10, 10],
         "TUE": [10, 10, 10],
@@ -76,23 +85,14 @@ def PRIMARY_LOOP():
         "FRI": [10, 10, 10],
         "SAT": [10, 10, 10]
     }
-    picking_shift = {
-        "SUN": [1, 10, 5],
-        "MON": [1, 10, 5],
-        "TUE": [1, 10, 5],
-        "WED": [1, 10, 5],
-        "THU": [1, 10, 5],
-        "FRI": [1, 10, 5],
-        "SAT": [1, 10, 5]
-    }
     packing_shift = {   # Each shift should ~= N PACKING_STATIONS
-        "SUN": [1, 5, 5],
-        "MON": [1, 5, 5],
-        "TUE": [1, 5, 5],
-        "WED": [1, 5, 5],
-        "THU": [1, 5, 5],
-        "FRI": [1, 5, 5],
-        "SAT": [1, 5, 5]
+        "SUN": [5, 5, 5],
+        "MON": [5, 5, 5],
+        "TUE": [5, 5, 5],
+        "WED": [5, 5, 5],
+        "THU": [5, 5, 5],
+        "FRI": [5, 5, 5],
+        "SAT": [5, 5, 5]
     }
     options_dict = {
         # Optimize Variables
@@ -106,7 +106,7 @@ def PRIMARY_LOOP():
         # Debug Variables
          'KENNY_LOGGINS'        :  False,        # [True, False*]
          'SAVE_DATA'            :  True,       # [True*, False]
-         'SAVE_ORDERS'          :  False,        # [True*, False]
+         'SAVE_ORDERS'          :  True,        # [True*, False]
          'FINAL_ECHO'           :  True,        # [True*, False]
          'ORDER_TEST'           :  False,        # [True, False*]
          #'ORDER_FILE'           : #'strategies/final-project-2022m4_orders.csv' ## moreeee compute :(

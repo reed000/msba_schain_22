@@ -124,6 +124,7 @@ class Orders(BusinessProcess):
     def __newOrder__(self, kernel=None):
         # Pull From Master Orders
         new_order = self.master_orders[kernel.clock]
+        
         if not new_order:
             warnings.warn("EMPTY! {} at {}".format(new_order, kernel.clock))
 

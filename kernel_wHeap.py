@@ -231,6 +231,7 @@ class Kernel():
 
         df.to_csv("output/simout_{}.csv".format(datetime.now().strftime("%m_%d-%H_%M")))
 
+
     def writeOrdersDataframe(self):
         df = pd.DataFrame.from_dict(
             data=self.DATA_STORAGE._order_generated_dict,

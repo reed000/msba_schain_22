@@ -33,7 +33,7 @@ class Station():
             'P4' : 0
         }
 
-    def addOrder(self, order_in):
+    def addOrder(self, order_in):        
         self.orders.append(order_in)
         self.order_len += 1
         self.facility.station_burden[self.slot] += 1
@@ -45,7 +45,9 @@ class Station():
 
         self.order_len -= 1
         self.facility.station_burden[self.slot] -= 1
-        return self.orders.pop(0)
+        out = self.orders.pop(0)
+        return out
+        
 
     def setWorker(self, worker_in=None):
         self.worker_slot = worker_in
@@ -57,6 +59,7 @@ class Station():
         self.worker_slot = None
 
     def getNumOrders(self):
+        
         return self.order_len
 
     def getWorkerIdle(self):

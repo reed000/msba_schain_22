@@ -28,7 +28,7 @@ class Pooling(BusinessProcess):
             kernel.DATA_STORAGE.add_cost('delivery', cs.DELIVERY_COST_WEEKLY)
             self.__read_strategy__(WEEKLY_DELIVER_FILE, kernel)
         else:
-            self.__read_strategy__('_TEST_')
+            self.__read_strategy__('_TEST_', kernel)
 
     def __read_strategy__(self, file_path, kernel=None):
         """ Reading Delivery Strategy to self.delivery_queue

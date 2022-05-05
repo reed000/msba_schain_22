@@ -17,7 +17,7 @@ from bizprocs.facilities.packing import Packing
 from bizprocs.facilities.ordering import Orders
 
 SET_RUNTIME = 3600*24*10 # 10 days
-# SET_RUNTIME = 3600*24*30*2 # 2 months
+# SET_RUNTIME = 3600*24*30*1 # 1 months
 # SET_RUNTIME = 60*525600 # minutes = 1 year
 
 def find_delivery_file():
@@ -68,44 +68,45 @@ def PRIMARY_LOOP():
     # find 100 order of workers
     # loop 80 - 120 workers for each of the 21 time slots per worker
     stowing_shift = {
-        "SUN": [5, 5, 5],
-        "MON": [20, 5, 5],
-        "TUE": [5, 5, 5],
-        "WED": [5, 5, 5],
-        "THU": [5, 5, 5],
-        "FRI": [5, 5, 5],
-        "SAT": [5, 5, 5]
+        "SUN": [10, 10, 10],
+        "MON": [10, 10, 10],
+        "TUE": [10, 10, 10],
+        "WED": [10, 10, 10],
+        "THU": [10, 10, 10],
+        "FRI": [10, 10, 10],
+        "SAT": [10, 10, 10]
     }
     picking_shift = {
-        "SUN": [5, 5, 5],
-        "MON": [5, 5, 5],
-        "TUE": [5, 5, 5],
-        "WED": [5, 5, 5],
-        "THU": [5, 5, 5],
-        "FRI": [5, 5, 5],
-        "SAT": [5, 5, 5]
+        "SUN": [1, 10, 5],
+        "MON": [1, 10, 5],
+        "TUE": [1, 10, 5],
+        "WED": [1, 10, 5],
+        "THU": [1, 10, 5],
+        "FRI": [1, 10, 5],
+        "SAT": [1, 10, 5]
     }
     packing_shift = {   # Each shift should ~= N PACKING_STATIONS
-        "SUN": [5, 5, 5],
-        "MON": [5, 5, 5],
-        "TUE": [5, 5, 5],
-        "WED": [5, 5, 5],
-        "THU": [5, 5, 5],
-        "FRI": [5, 5, 5],
-        "SAT": [5, 5, 5]
+        "SUN": [1, 5, 5],
+        "MON": [1, 5, 5],
+        "TUE": [1, 5, 5],
+        "WED": [1, 5, 5],
+        "THU": [1, 5, 5],
+        "FRI": [1, 5, 5],
+        "SAT": [1, 5, 5]
     }
     options_dict = {
         # Optimize Variables
-         'DELIVERY_SCHEDULE'    : 'WEEKLY',      #['DAILY', 'WEEKLY'] _TEST_
+         'DELIVERY_SCHEDULE'    : 'DAILY',      #['DAILY', 'WEEKLY'] _TEST_
          'STORAGE_MECHANIC'     : 'DESIGNATED', #['DESIGNATED', 'RANDOM']
-         'STORAGE_WORKERS'      :  500,         # stowing_shift
+         'STORAGE_WORKERS'      :  stowing_shift, #towing_shift
          'PICKING_MECHANIC'     : 'DESIGNATED', #['DESIGNATED', 'RANDOM']
-         'PICKING_WORKERS'      :  25,          # picking_shift
-         'PACKING_WORKERS'      :  30,          # packing_shift
-         'PACKING_STATIONS'     :  30,          # N
+         'PICKING_WORKERS'      :  picking_shift,          # picking_shift
+         'PACKING_WORKERS'      :  packing_shift,          # packing_shift
+         'PACKING_STATIONS'     :  5,          # N
         # Debug Variables
          'KENNY_LOGGINS'        :  False,        # [True, False*]
-         'SAVE_DATA'            :  False,       # [True*, False]
+         'SAVE_DATA'            :  True,       # [True*, False]
+         'SAVE_ORDERS'          :  False,        # [True*, False]
          'FINAL_ECHO'           :  True,        # [True*, False]
          'ORDER_TEST'           :  False,        # [True, False*]
          #'ORDER_FILE'           : #'strategies/final-project-2022m4_orders.csv' ## moreeee compute :(

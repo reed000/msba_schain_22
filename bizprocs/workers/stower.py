@@ -61,17 +61,21 @@ class StowageWorker(Worker):
 
         
     def __checkParking__(self, kernel=None):
+        # hold if there is nothing in the parking area:
+        nothing = kernel.DATA_STORAGE.parking['P1'] == 0 and \
+                    kernel.DATA_STORAGE.parking['P2'] == 0 and \
+                    kernel.DATA_STORAGE.parking['P3'] == 0 and \
+                    kernel.DATA_STORAGE.parking['P4'] == 0
+        
+        if nothing:
+            self.__idling__(kernel)
+
+        # otherwise, get the max weight thing
         max_weight_prod = kernel.DATA_STORAGE.get_max_weight_parking()
 
         # amount taken is minimum of max capacity or amount left
         # TODO - wrong!!! needs maximum capacity of UNITS, not WEIGHT
         load, max_weight_prod = self.__setLoad__(kernel, max_weight_prod)        
-
-        # if this is the load then there is nothing in parking
-        if load == -999:
-            # set to idle and get out of there
-            self.__idling__(kernel)
-            return
 
         # grab it with your hands
         self.hands[max_weight_prod] = math.floor(load / self.weights[max_weight_prod])
@@ -179,7 +183,15 @@ class StowageWorker(Worker):
 
         # add to the appropriate storage area
         for item in self.dropoff:
-            kernel.DATA_STORAGE.storage[self.destination][item] += self.dropoff[item]    
+            kernel.DATA_STORAGE.storage[self.destination][item] += self.dropoff[item]
+            if item == "P1":
+                kernel.DATA_STORAGE.throughputs['value_storage'] += self.dropoff[item] * cs.P1_PROFIT
+            elif item == "P2":
+                kernel.DATA_STORAGE.throughputs['value_storage'] += self.dropoff[item] * cs.P2_PROFIT
+            elif item == "P3":
+                kernel.DATA_STORAGE.throughputs['value_storage'] += self.dropoff[item] * cs.P3_PROFIT
+            elif item == "P4":
+                kernel.DATA_STORAGE.throughputs['value_storage'] += self.dropoff[item] * cs.P4_PROFIT
 
         # release it with your hands
         for item in self.dropoff:

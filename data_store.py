@@ -60,8 +60,17 @@ class DataStore():
                 'lost_sales': 0,
                 'facilities_fxd': cs.FXD_FACILITY, #$5M for year
                 'packing_stn': 0,
-                'inventory_hldg': 0
+                'inventory_hldg': 0,
             }
+
+        self.throughputs = {
+                'value_storage'     : 0.0,
+                'value_picking'     : 0.0,
+                'value_packing'     : 0.0,
+                'throughput_storage': 0.0,
+                'throughput_picking': 0.0,
+                'throughput_packing': 0.0,
+        }
         self.revenue = 0
         self.product = ['P1', 'P2', 'P3', 'P4']
         self.product_names = ['Tshirt', 'Hoodie', 'Sweatpants', 'Sneakers']
@@ -69,6 +78,7 @@ class DataStore():
         # dictionary of format {time : all logs}
         # to eventually dump into a dataframe at simulation end
         self._state_dict = {}
+        self._order_generated_dict = {}
     
     def get_KPIs(self):
         kpi = {
@@ -160,7 +170,7 @@ class DataStore():
         # if it's a list that means there's equivalent values
         if type(max_weight_key) is list:
             # arbitrarily pick the first one
-            max_weight_key = max_weight_key[0]
+            max_weight_key = max_weight_key[np.random.randint(0,len(max_weight_key))]
         
         return max_weight_key
 
@@ -224,4 +234,38 @@ class DataStore():
             'time_idled_storage'    : self.idle_time['Storage'],
             'time_idled_picking'    : self.idle_time['Picking'],
             'time_idled_packing'    : self.idle_time['Packing'],
+            'value_storage'         : self.throughputs['value_storage'],
+            'value_picking'         : self.throughputs['value_picking'],
+            'value_packing'         : self.throughputs['value_packing'],
+            'throughput_storage'    : self.throughputs['throughput_storage'],
+            'throughput_picking'    : self.throughputs['throughput_picking'],
+            'throughput_packing'    : self.throughputs['throughput_packing'],
+        }
+
+    def getStorageValue():
+        return \
+        self.storage['Area1']['P1'] * cs.P1_PROFIT + \
+        self.storage['Area1']['P2'] * cs.P2_PROFIT + \
+        self.storage['Area1']['P3'] * cs.P3_PROFIT + \
+        self.storage['Area1']['P4'] * cs.P4_PROFIT + \
+        self.storage['Area2']['P1'] * cs.P1_PROFIT + \
+        self.storage['Area2']['P2'] * cs.P2_PROFIT + \
+        self.storage['Area2']['P3'] * cs.P3_PROFIT + \
+        self.storage['Area2']['P4'] * cs.P4_PROFIT + \
+        self.storage['Area3']['P1'] * cs.P1_PROFIT + \
+        self.storage['Area3']['P2'] * cs.P2_PROFIT + \
+        self.storage['Area3']['P3'] * cs.P3_PROFIT + \
+        self.storage['Area3']['P4'] * cs.P4_PROFIT + \
+        self.storage['Area4']['P1'] * cs.P1_PROFIT + \
+        self.storage['Area4']['P2'] * cs.P2_PROFIT + \
+        self.storage['Area4']['P3'] * cs.P3_PROFIT + \
+        self.storage['Area4']['P4'] * cs.P4_PROFIT
+
+    def save_order(self, time, order_in):
+        
+        self._order_generated_dict[time] = {
+            'P1' : order_in['P1'],
+            'P2' : order_in['P2'],
+            'P3' : order_in['P3'],
+            'P4' : order_in['P4'],
         }

@@ -82,6 +82,8 @@ class PackageWorker(Worker):
     def __orderOut__(self, kernel=None):
         # I DON'T CARE WHETHER YOU OWE ME OR NOT - YOU NEED TO PAY ME
         kernel.acquireCurrency(self.order)
+        
+        kernel.DATA_STORAGE.throughputs['value_packing'] += self.order.getProfit()
 
         # GOT A MANSION, A CABIN, A CONDO, I SLEEP IN MY PHANTOM
         self.order = None

@@ -21,7 +21,7 @@ class Storage(BusinessProcess):
 
     def startup(self, kernel=None):
         # set number of workers
-        self.n_workers = kernel.options['STORAGE_WORKERS']  
+        self.n_workers = kernel.options['STORAGE_WORKERS']
 
         # allocate all shift changes
         self.__scheduleShiftChanges__(kernel)
@@ -38,7 +38,7 @@ class Storage(BusinessProcess):
 
         # for the time being, only 2 shift changes
 
-        while time_shift_change < kernel.runtime:           
+        while time_shift_change < kernel.runtime:
             kernel.addEvent(time_shift_change, "ShiftChangeStorage")
             time_shift_change += shift_interval
 
@@ -49,9 +49,18 @@ class Storage(BusinessProcess):
             self.workers[they_call_me_the_working_man].clockOut(kernel)
 
         # create new workers
-        for i in range(1,self.n_workers+1):
+        day, shift = kernel.get_day_and_shift(kernel.clock)
+        if shift == 3:
+            shift = 0
+        workers_now = self.n_workers[day][shift]
+        for i in range(1,workers_now+1):
             new_worker = StowageWorker(self, kernel, i)
             self.workers[new_worker.name] = new_worker
+
+        # log shift throughput
+        if kernel.clock > 0:
+            kernel.DATA_STORAGE.throughputs['throughput_storage'] = \
+                kernel.DATA_STORAGE.throughputs['value_storage'] / kernel.clock * 3600 # per hour
 
 
     def __pokeWorkers__(self, kernel=None):

@@ -151,6 +151,9 @@ class Kernel():
         if self.options['SAVE_DATA']:
             self.writeDataframe()
 
+        if self.options['SAVE_ORDERS']:
+            self.writeOrdersDataframe()
+
         if self.options['FINAL_ECHO']:
             self.finalEcho()
 
@@ -226,7 +229,16 @@ class Kernel():
             orient='index'
         )
 
-        df.to_csv("output/simout_{}.csv".format(datetime.now().strftime("%m_%d-%H:%M")))
+        df.to_csv("output/simout_{}.csv".format(datetime.now().strftime("%m_%d-%H_%M")))
+
+
+    def writeOrdersDataframe(self):
+        df = pd.DataFrame.from_dict(
+            data=self.DATA_STORAGE._order_generated_dict,
+            orient='index'
+        )
+
+        df.to_csv("output/gen_orders_{}.csv".format(datetime.now().strftime("%m_%d-%H_%M")))
 
     def finalEcho(self):
         echo_out = self.DATA_STORAGE.get_KPIs()

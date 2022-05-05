@@ -84,6 +84,9 @@ class Orders(BusinessProcess):
         # ADD to Next Order to Event_Queue AT clock+Interval: get the deconflicted time
         new_time, _ = kernel.addEvent(kernel.clock + order_int, "OrderUp")
 
+        if kernel.options['SAVE_ORDERS']:
+            kernel.DATA_STORAGE.save_order(new_time, order_dict)
+
         # Append VALID ORder to master orders
         self.master_orders[new_time] = order_dict
 

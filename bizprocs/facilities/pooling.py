@@ -22,7 +22,7 @@ class Pooling(BusinessProcess):
     def startup(self, kernel=None):
         if kernel.options['DELIVERY_SCHEDULE'] == "DAILY":
             kernel.DATA_STORAGE.add_cost('delivery', cs.DELIVERY_COST_DAILY)
-            self.__read_strategy__(WEEKLY_DELIVER_FILE, kernel)
+            self.__read_strategy__(DAILY_DELIVER_FILE, kernel)
 
         elif kernel.options['DELIVERY_SCHEDULE'] == "WEEKLY":
             kernel.DATA_STORAGE.add_cost('delivery', cs.DELIVERY_COST_WEEKLY)

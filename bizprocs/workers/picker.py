@@ -236,6 +236,8 @@ class PickageWorker(Worker):
 
 
     def __transferOrder__(self, kernel=None):
+        kernel.DATA_STORAGE.throughputs['value_picking'] += self.order.getProfit()
+
         lbs_index = self.facility.my_packing.getLeastBurdenedStation()
         lbs = self.facility.my_packing.getStationByIndex(lbs_index)
         lbs.addOrder(self.order)

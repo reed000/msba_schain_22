@@ -36,8 +36,8 @@ class Orders(BusinessProcess):
         """
         Normal Distribution to generate product distribution
         """
-        mean_val = cs.DISTRIBUTION['{}_{}'.format(day, shift)]['{}_mean'.format(product)]
-        std_val = cs.DISTRIBUTION['{}_{}'.format(day, shift)]['{}_std'.format(product)]
+        n_val = cs.DISTRIBUTION['{}_{}'.format(day, shift)]['{}_n'.format(product)]
+        p_val = cs.DISTRIBUTION['{}_{}'.format(day, shift)]['{}_p'.format(product)]
 
         p_min = 0
         p_max = cs.P_UPPER_LIM[product]
@@ -45,10 +45,13 @@ class Orders(BusinessProcess):
         # TODO easy method discrete norm
         # self.__get_truncated_normal__(mean_val, std_val, p_min, p_max)
         # prod_quant = max(min(round(np.random.normal(mean_val, std_val)), p_max), 0)
-        prod_quant = min(round(np.random.gamma(1.5, scale=1.1, size=1)[0]), p_max)
 
-        # FERENC ADD HERE
+        # Method Gamma
+        # prod_quant = min(round(np.random.gamma(1.5, scale=1.1, size=1)[0]), p_max)
 
+        # No max
+        prod_quant = round(np.random.negative_binomial(n_val, p_val, size=1)[0])
+        
         return prod_quant
         
     def __get_truncated_normal__(self, mean=0, sd=1, low=0, upp=10):
@@ -127,7 +130,7 @@ class Orders(BusinessProcess):
         
         if not new_order:
             warnings.warn("EMPTY! {} at {}".format(new_order, kernel.clock))
-
+        
         # ADD to Kernal orders queue - CREATE new ORDER()
         das_order = Order(kernel.clock, new_order)
 

@@ -180,7 +180,7 @@ class StowageWorker(Worker):
         if self.stow_strategy == "DESIGNATED":
             self.dropoff = self.hands
         else:
-            self.__randomStorage__(self, kernel)
+            self.__randomStorage__(kernel)
 
         dropoff_time_sink = 0
         for item in self.dropoff:
@@ -223,7 +223,7 @@ class StowageWorker(Worker):
             self.dropoff = self.hands.copy()
         else:
             for item in self.hands:
-                self.dropoff[item] = floor(self.hands[item]/4.0)
+                self.dropoff[item] = np.floor(self.hands[item]/4.0)
 
 
 

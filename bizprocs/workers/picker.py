@@ -197,7 +197,8 @@ class PickageWorker(Worker):
                 3   : 'Area4',
             }
 
-        self.destination = dest_dict[np.random.randint(0,4,1)]
+        #print(np.random.randint(0,3))
+        self.destination = dest_dict[np.random.randint(0,3)]
 
     def __destLogicRandomTransfer__(self, kernel=None):
         from_to_dict = {
@@ -208,7 +209,7 @@ class PickageWorker(Worker):
         }
 
         possible_nexts = from_to_dict[self.destination]
-        self.destination = possible_nexts[np.random.randint(0,1,1)]
+        self.destination = possible_nexts[np.random.randint(0,1)]
 
 
     def __heftItem__(self, kernel=None, missing_item=None):

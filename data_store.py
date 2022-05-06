@@ -91,7 +91,7 @@ class DataStore():
             "  (Inventory Holding Cost)": self.costs['inventory_hldg'],
             "------------TOTAL PROFIT =": self.revenue - self.get_total_cost(),
             "--------------------------": "--------------------------",
-            "    Total Parking Weight =": "{:.2f} %".format(self.get_parking_weight()),
+            "    Total Parking Weight =": "{:.2f} lbs".format(self.get_parking_weight()),
             "-----Utilization Storage =": "{:.2f} %".format(100.*(self.work_time["Storage"] - self.idle_time["Storage"]) / self.work_time["Storage"]),
             "-----Utilization Picking =": "{:.2f} %".format(100.*(self.work_time["Picking"] - self.idle_time["Picking"]) / self.work_time["Picking"]),
             "-----Utilization Packing =": "{:.2f} %".format(100.*(self.work_time["Packing"] - self.idle_time["Packing"]) / self.work_time["Packing"])
@@ -102,7 +102,6 @@ class DataStore():
         out_str = "KPIs\n"
         out_str += str(self.parking)
         out_str += str(self.get_total_cost)
-        # out_str += "\n KPIS: \n{}".format(str(self.get_KPIs()))       ## TODO ENABLE FOR FINAL OUTPUT
 
         return out_str
             
@@ -126,14 +125,13 @@ class DataStore():
             for prod in self.storage[area]:
                 total_inventory[prod] += self.storage[area][prod]
         
-        # Add Packing/Outbound TODO
         return total_inventory
     
-    def add_holding_cost(self):                                        # TODO IMPLEMENT USAGE
+    def add_holding_cost(self):                                        
         """Add holding cost at daily level
         """
         inventory = self.get_curr_inventory()
-        for prod in inventory:
+        for prod in self.product:
             if prod == 'P1':
                 self.costs['inventory_hldg'] += inventory[prod] * cs.P1_HOLDING_COST
             elif prod == 'P2':
@@ -142,6 +140,8 @@ class DataStore():
                 self.costs['inventory_hldg'] += inventory[prod] * cs.P3_HOLDING_COST
             else:
                 self.costs['inventory_hldg'] += inventory[prod] * cs.P4_HOLDING_COST
+
+        # print(self.costs['inventory_hldg'])
     
     def get_max_cnt_parking(self):
         """Return Max Count Parking Spot
@@ -262,7 +262,6 @@ class DataStore():
         self.storage['Area4']['P4'] * cs.P4_PROFIT
 
     def save_order(self, time, order_in):
-        
         self._order_generated_dict[time] = {
             'P1' : order_in['P1'],
             'P2' : order_in['P2'],

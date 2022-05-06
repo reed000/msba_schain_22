@@ -284,8 +284,8 @@ class Kernel():
         midnights = []
         for i in range(366): 
             midnights.append(i*86400)
-
-            # TODO self.addEvent(i, "MIDNIGHT")
+            new_time, _ = self.__checkEventTime__(i)
+            self.addEvent(new_time, "AddInventory")
 
             # TODO Inventory holding costs are accrued on a continuous basis. For initial starting inventory, 
             # assume that there is no inventory holding cost before time 0 but inventory holding cost 

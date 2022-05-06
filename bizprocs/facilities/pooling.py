@@ -9,24 +9,22 @@ import math
 from bizprocs.process import BusinessProcess
 from bizprocs.facilities.storing import Storage
 
-DAILY_DELIVER_FILE = 'strategies/daily_delivery.csv'
-WEEKLY_DELIVER_FILE = 'strategies/weekly_delivery.csv'
-
 class Pooling(BusinessProcess):
 
     def __init__(self):
         super().__init__(name="Pooling")
         self.__addEvent__("DeliveryIn",self.__getDelivery__)
+        self.__addEvent__("AddInventory",self.__addInventory__)
         self.delivery_queue = {}
 
     def startup(self, kernel=None):
         if kernel.options['DELIVERY_SCHEDULE'] == "DAILY":
             kernel.DATA_STORAGE.add_cost('delivery', cs.DELIVERY_COST_DAILY)
-            self.__read_strategy__(DAILY_DELIVER_FILE, kernel)
+            self.__read_strategy__(cs.DAILY_DELIVER_FILE, kernel)
 
         elif kernel.options['DELIVERY_SCHEDULE'] == "WEEKLY":
             kernel.DATA_STORAGE.add_cost('delivery', cs.DELIVERY_COST_WEEKLY)
-            self.__read_strategy__(WEEKLY_DELIVER_FILE, kernel)
+            self.__read_strategy__(cs.WEEKLY_DELIVER_FILE, kernel)
         else:
             self.__read_strategy__('_TEST_')
 
@@ -40,7 +38,6 @@ class Pooling(BusinessProcess):
         if file_path == "_TEST_":
             # HARDCODE DELIVERIES
             for q in [32400, 378000, 723600, 1069200, 1414800]:
-                # kernel.addEvent(new_time, "DeliveryIn") ----- OLD CODE
                 # ADD to Kernel EVENT_QUEUE, get the deconflicted time
                 new_time, _ = kernel.addEvent(q, "DeliveryIn")
 
@@ -55,14 +52,6 @@ class Pooling(BusinessProcess):
             # DYNAMIC FILE DELIVERIES
             delivery_df = pd.read_csv(file_path)
             for index, row in delivery_df.iterrows():
-                # self.delivery_queue[row['Timestamp']] = {
-                #     'P1': row['P1'],
-                #     'P2': row['P2'],
-                #     'P3': row['P3'],
-                #     'P4': row['P3']
-                # }
-                # kernel.addEvent(row['Timestamp'], "DeliveryIn") ----- OLD CODE
-
                 # ADD to Kernel EVENT_QUEUE, get the deconflicted time
                 new_time, _ = kernel.addEvent(row['Timestamp'], "DeliveryIn")
 
@@ -70,7 +59,7 @@ class Pooling(BusinessProcess):
                     'P1': row['P1'],
                     'P2': row['P2'],
                     'P3': row['P3'],
-                    'P4': row['P3']
+                    'P4': row['P4']
                 }
                 
         return self.delivery_queue
@@ -83,6 +72,10 @@ class Pooling(BusinessProcess):
         weight += shipment['P4'] * cs.P4_WEIGHT
         return weight
 
+    def __addInventory__(self, kernel=None):
+        # Add to holding cost
+        kernel.DATA_STORAGE.add_holding_cost()
+        
     def __getDelivery__(self, kernel=None):
         shipment = self.delivery_queue[kernel.clock]
 
@@ -95,7 +88,7 @@ class Pooling(BusinessProcess):
         # TODO Check weights
         curr_parking_weight = kernel.DATA_STORAGE.get_parking_weight()
         ship_weight = self.get_ship_weight(shipment)
-
+        
         surplus = (curr_parking_weight + ship_weight) - cs.PARKING_LIMIT
         # print("DELIVERY {} PROCESS: {} {}".format(kernel.clock, ship_weight, surplus))
         if surplus <= 0:

@@ -29,6 +29,7 @@ class PackageWorker(Worker):
 
         # populate LOCAL methods
         # TODO - repopulate with picker methods
+        self.__addEvent__(self.name+"_OccupyStation"  ,self.__occupyFirstStation__)
         self.__addEvent__(self.name+"_PackOrder"  ,self.__packOrder__)
         self.__addEvent__(self.name+"_OrderOut"   ,self.__orderOut__)
 
@@ -43,17 +44,15 @@ class PackageWorker(Worker):
         # call base worker poke for logging
         super().poke(kernel)
 
-        print(self.present_task)
-
         # DON'T JUST STAND THERE ROOKIE GET TO A PACKING STATION
         if self.station is None:            
-            self.__occupyFirstStation__(kernel)
+            self.__addWorkerEvent__(kernel, kernel.clock+1e-3, self.name+"_OccupyStation")
 
         # DON'T JUST STAND THERE SLACKER START PACKING THAT ORDER
         elif self.station.getNumOrders() > 0:   
-            self.__packOrder__(kernel)
+            self.__addWorkerEvent__(kernel, kernel.clock+1e-3, self.name+"_PackOrder")
         else:
-            self.__idling__()
+            self.__idling__(kernel)
 
     def __occupyFirstStation__(self, kernel):
         goto_index = self.facility.getFirstUnoccupiedStation()
@@ -67,6 +66,7 @@ class PackageWorker(Worker):
         self.station_slot = goto_index
         self.facility.setStationOccupied(self, goto_index)
         self.station = self.facility.getStationByIndex(goto_index)
+        self.__idling__(kernel)
         
 
     def __packOrder__(self, kernel=None):
@@ -83,6 +83,7 @@ class PackageWorker(Worker):
 
         eta = kernel.clock + order_time
         self.__addWorkerEvent__(kernel, eta, self.name+"_OrderOut")
+
 
     def __orderOut__(self, kernel=None):
         # I DON'T CARE WHETHER YOU OWE ME OR NOT - YOU NEED TO PAY ME
